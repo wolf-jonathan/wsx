@@ -401,6 +401,34 @@ commands.
 - `Fetch(path)`
 - command execution abstraction suitable for mocking
 
+**Progress update (2026-04-12):**
+
+- Added `internal/git/git.go` with the shared git execution seam:
+  - `CommandResult`
+  - `Runner`
+  - `ExecRunner`
+  - `Client`
+  - package helpers `Status(path)` and `Fetch(path)`
+- Added black-box tests in `internal/git/git_test.go` for:
+  - `Status(path)` using `git status --short --branch`
+  - `Fetch(path)` using `git fetch --prune`
+  - propagation of captured stdout, stderr, exit code, and runner errors
+- Kept the API general enough for later command work:
+  - process execution goes through one shared runner abstraction
+  - `status`, `fetch`, and `exec` can all build on the same command-result shape
+
+**Frozen contracts after this slice:**
+
+- `internal/git.Runner` is the shared command execution abstraction for git-facing and later exec-facing command work.
+- `CommandResult` owns captured `stdout`, `stderr`, and `exit_code` style data for process invocations.
+- `Status(path)` runs `git status --short --branch` in the target repo directory.
+- `Fetch(path)` runs `git fetch --prune` in the target repo directory.
+
+**Verification status:**
+
+- `go test ./...`
+- Note: a direct `go test ./internal/git` run hit a Windows sandbox Go build-cache access error, but the package passed as part of `go test ./...`.
+
 ### Task B1 - `status`
 
 **Owner:** Agent 8

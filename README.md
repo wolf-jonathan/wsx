@@ -70,7 +70,7 @@ More detailed structure and implementation phases are documented in
 
 Parallel Track B from the implementation plan:
 
-- add the shared git runner layer in `internal/git`
+- add `wsx status`
 
 ## Development
 

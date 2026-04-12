@@ -803,7 +803,7 @@ This phase is expanded because Windows support is a first-class requirement from
 ### Phase 4 - Git & Exec Commands
 **Goal:** `status`, `fetch`, `exec`.
 
-- [ ] Implement `internal/git/git.go` with `Status(path)` and `Fetch(path)` using `os/exec`
+- [x] Implement `internal/git/git.go` with `Status(path)` and `Fetch(path)` using `os/exec`
 - [ ] Implement `wsx status` with `--json`
 - [ ] Implement `wsx fetch` with `--parallel`
 - [ ] Implement `wsx exec -- <cmd>` with `--parallel` and `--json`
