@@ -100,6 +100,45 @@ other tasks depend on.
 Do not implement broad command behavior here. Add only enough wiring to compile
 and support later work.
 
+**Progress update (2026-04-12):**
+
+- Added `go.mod` with the initial Cobra dependency.
+- Added minimal CLI bootstrap in `main.go` and `cmd/root.go`.
+- Implemented initial workspace contracts in `internal/workspace/workspace.go`:
+  - `Config`
+  - `Ref`
+  - `LoadedConfig`
+  - `FindWorkspaceRoot(startDir string) (string, error)`
+  - `LoadConfig(startDir string) (*LoadedConfig, error)`
+  - `SaveConfig(root string, cfg Config) error`
+- Implemented initial env contracts in `internal/workspace/env.go`:
+  - `EnvVars`
+  - `LoadEnv(root string) (EnvVars, error)`
+  - `ResolvePath(path string, env EnvVars) (string, error)`
+- Added black-box tests for:
+  - config save schema
+  - upward workspace discovery
+  - workspace-not-found behavior
+  - `.wsx.env` parsing
+  - `${VAR}` resolution precedence and unresolved-variable errors
+
+**Frozen contracts after this slice:**
+
+- `.wsx.json` remains the persisted config file and must keep placeholder paths untouched.
+- `LoadConfig` returns raw config data and must not rewrite `${VAR}` placeholders to absolute paths.
+- `ResolvePath` is the point-of-use resolver and must prefer `.wsx.env` values over process environment variables.
+- Workspace discovery is defined as an upward walk from the provided start directory until `.wsx.json` is found.
+- `internal/workspace` owns these config and env seams; later command work should build on them instead of redefining them.
+
+**Verification status:**
+
+- Tests were written first, but this Codex sandbox could not execute `go test` because `go` was not available on `PATH`.
+- User-side test execution surfaced one harness issue: tests using `t.Setenv` cannot also use `t.Parallel`.
+- That test issue was fixed in `internal/workspace/env_test.go`.
+- Required rerun on a machine with Go available:
+  - `go test ./internal/workspace`
+  - `go test ./...`
+
 ### Phase 1 - Windows Link Layer
 
 This phase is isolated enough to be owned independently once Phase 0 is stable.
@@ -120,6 +159,37 @@ This phase is isolated enough to be owned independently once Phase 0 is stable.
 **Dependency:**
 
 - stable path and config helpers from Phase 0
+
+**Progress update (2026-04-12):**
+
+- Added `internal/workspace/symlink.go` with the initial link contract:
+  - `CreateLink(target, link string) (string, error)`
+  - `DetectLinkType(path string) (string, error)`
+  - `RemoveLink(path string) error`
+- Added runtime link type constants:
+  - `symlink`
+  - `junction`
+- Implemented Windows-first behavior:
+  - try `os.Symlink` first
+  - fall back to a directory junction on Windows permission failures
+  - keep runtime link type detection out of `.wsx.json`
+- Added tests for:
+  - directory link creation
+  - Windows junction fallback on symlink permission failure
+  - link detection and safe link removal without touching the target
+  - rejection of regular directories in `RemoveLink`
+
+**Frozen contracts after this slice:**
+
+- `CreateLink` returns the runtime link method used on disk and does not persist it into workspace config.
+- On Windows, permission-denied symlink creation must silently fall back to a junction.
+- `RemoveLink` must only delete links created in the workspace and must reject plain directories.
+- `DetectLinkType` is the source of truth for runtime link reporting used by later commands like `list` and `doctor`.
+
+**Verification status:**
+
+- `go test ./internal/workspace`
+- `go test ./...`
 
 ### Phase 2 - `init` Command
 

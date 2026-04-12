@@ -8,6 +8,9 @@ build/
 *.dylib
 *.test
 
+# Local test/build caches
+tmp/
+
 # Go artifacts
 coverage.out
 *.coverprofile

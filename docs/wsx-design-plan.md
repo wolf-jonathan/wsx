@@ -762,7 +762,7 @@ This phase is expanded because Windows support is a first-class requirement from
 - [ ] Define `Config` struct in `internal/workspace/workspace.go` (paths stored with placeholders)
 - [ ] Implement `LoadConfig()` - walks up from cwd to find `.wsx.json`, returns raw config with placeholders **untouched**. Implement `ResolvePath(path string) (string, error)` separately in `env.go` - resolves `${VAR}` at point of use only
 - [ ] Implement `SaveConfig()`
-- [ ] Implement `internal/workspace/symlink.go` - try symlink, auto-fallback to directory junction on Windows permission failure, return which method was used (caller reports at runtime, not persisted to config)
+- [x] Implement `internal/workspace/symlink.go` - try symlink, auto-fallback to directory junction on Windows permission failure, return which method was used (caller reports at runtime, not persisted to config)
 - [ ] Implement `wsx init` - creates `.wsx.json`, `.wsx.env`, adds `.wsx.env` to `.gitignore`
 - [ ] Write `CLAUDE.md` for the project itself
 - [ ] Add a first-party top-level `SKILL.md` describing how AI agents should use `wsx`

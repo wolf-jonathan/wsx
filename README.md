@@ -68,10 +68,6 @@ More detailed structure and implementation phases are documented in
 
 Phase 1 from the design plan:
 
-- scaffold the Go CLI with Cobra
-- implement workspace config load/save
-- implement `.wsx.env` resolution
-- implement Windows symlink or junction creation
 - add `wsx init`
 
 ## Development

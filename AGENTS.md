@@ -71,6 +71,12 @@ wsx/
 - If behavior changes, update the design doc or explicitly document the divergence.
 - Document Windows behavior with concrete detail, especially around symlink and junction handling.
 
+## Delivery And Handoff Expectations
+
+- After implementing a feature, explain how to run it locally.
+- After implementing a feature, explain how to run the relevant tests locally.
+- If the implementation and tests pass, update progress notes for handoff to future AI agents in the appropriate project docs.
+
 ## Working Style
 
 - Prefer small, reviewable steps that preserve the invariants above.
