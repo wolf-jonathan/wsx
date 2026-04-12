@@ -8,8 +8,9 @@ without copying or merging anything.
 ## Status
 
 This project is in early implementation. The shared workspace layer, Windows
-link handling, `wsx init`, `wsx add`, and `wsx remove` are in place. The product direction remains
-defined in [docs/wsx-design-plan.md](docs/wsx-design-plan.md).
+link handling, `wsx init`, `wsx add`, `wsx remove`, and `wsx list` are in place.
+The product direction remains defined in
+[docs/wsx-design-plan.md](docs/wsx-design-plan.md).
 
 ## Core Idea
 
@@ -67,9 +68,9 @@ More detailed structure and implementation phases are documented in
 
 ## Next Implementation Target
 
-Parallel Track A from the implementation plan:
+Parallel Track B from the implementation plan:
 
-- add `wsx list`
+- add the shared git runner layer in `internal/git`
 
 ## Development
 

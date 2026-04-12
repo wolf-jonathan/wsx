@@ -15,6 +15,7 @@ func NewRootCommand() *cobra.Command {
 Currently supported commands:
   add     Add a linked repository to the current workspace
   init    Initialize a workspace in the current directory
+  list    List linked repositories in the current workspace
   remove  Remove a linked repository from the current workspace
 
 Only implemented commands are shown below.`,
@@ -25,6 +26,7 @@ Only implemented commands are shown below.`,
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.AddCommand(newAddCommand())
 	root.AddCommand(newInitCommand())
+	root.AddCommand(newListCommand())
 	root.AddCommand(newRemoveCommand())
 
 	return root

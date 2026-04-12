@@ -25,6 +25,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 		"Currently supported commands:",
 		"add",
 		"init",
+		"list",
 		"remove",
 		"Only implemented commands are shown below.",
 	} {

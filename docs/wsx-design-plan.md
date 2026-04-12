@@ -775,11 +775,11 @@ This phase is expanded because Windows support is a first-class requirement from
 ### Phase 2 - Core Commands
 **Goal:** `add`, `remove`, `list` working and tested on Windows.
 
-- [ ] Implement `wsx add` - path resolution, variable auto-parameterize prompt, symlink/junction creation
-- [ ] Implement `wsx remove`
-- [ ] Implement `wsx list` with status column, link type (symlink/junction), and `--json` flag
-- [ ] Add circular reference detection
-- [ ] Add name conflict detection
+- [x] Implement `wsx add` - path resolution, variable auto-parameterize prompt, symlink/junction creation
+- [x] Implement `wsx remove`
+- [x] Implement `wsx list` with status column, link type (symlink/junction), and `--json` flag
+- [x] Add circular reference detection
+- [x] Add name conflict detection
 
 **Prompt to use:**
 > "Implement `cmd/add.go` for the `wsx` CLI. It should: resolve the given path, check if any `.wsx.env` variable is a prefix and offer to parameterize it, check for circular refs and name conflicts, create a symlink/junction via `internal/workspace/symlink.go`, and save to `.wsx.json`. Then implement `cmd/remove.go` and `cmd/list.go` with `--json` support."

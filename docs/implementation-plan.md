@@ -356,6 +356,31 @@ These tasks can run in parallel if they do not modify shared workspace helpers.
 - `--json`
 - live status and runtime link type
 
+**Progress update (2026-04-12):**
+
+- Added `cmd/list.go` and wired `list` into the root Cobra command and help text.
+- Added black-box tests in `cmd/list_test.go` for:
+  - text output with live `ok` and `broken` status reporting
+  - runtime link type reporting from `internal/workspace.DetectLinkType`
+  - `--json` output including `name`, stored `path`, `resolved_path`, `link_type`, and `status`
+- Kept command behavior thin:
+  - config loading continues to flow through `internal/workspace`
+  - placeholder resolution continues to flow through `workspace.ResolvePath`
+  - runtime link inspection continues to flow through `workspace.DetectLinkType`
+
+**Frozen contracts after this slice:**
+
+- `wsx list` reports the stored portable path from `.wsx.json`, not a rewritten absolute path.
+- `wsx list --json` emits one object per ref with `name`, `path`, `resolved_path`, `link_type`, and `status`.
+- `status` is reported live at runtime and must be `ok` only when the ref resolves to an existing directory and the workspace entry is still a link.
+- `link_type` remains runtime-only state derived from the on-disk link and must not be persisted into `.wsx.json`.
+
+**Verification status:**
+
+- Pending local verification in this Codex environment:
+  - `go test ./cmd`
+  - `go test ./...`
+
 ## Parallel Track B - Git Execution Layer
 
 Keep the command-runner abstraction stable before parallelizing the git-facing
