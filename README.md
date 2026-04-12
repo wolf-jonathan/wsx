@@ -71,7 +71,7 @@ More detailed structure and implementation phases are documented in
 
 Parallel Track B from the implementation plan:
 
-- add `wsx fetch`
+- add `wsx exec`
 
 ## Development
 

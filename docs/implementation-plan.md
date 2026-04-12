@@ -487,6 +487,38 @@ commands.
 - Git runner layer
 - Phase 0
 
+**TDD scope:**
+
+- text output grouped by repo
+- `--json`
+- non-zero exit when any repo fetch fails
+- `--parallel` while preserving workspace config order in output
+
+**Progress update (2026-04-12):**
+
+- Added `cmd/fetch.go` and wired `fetch` into the root Cobra command and help text.
+- Added command-level black-box tests in `cmd/fetch_test.go` for:
+  - grouped text output with fetched, empty-output, and git-error summaries
+  - `--json` output including `name`, stored `path`, `resolved_path`, `summary`, `error`, and `exit_code`
+  - `--parallel` execution while preserving workspace config order in the emitted results
+- Kept command behavior thin:
+  - config loading continues to flow through `internal/workspace`
+  - placeholder resolution continues to flow through `workspace.ResolvePath`
+  - git execution continues to flow through `internal/git`
+
+**Frozen contracts after this slice:**
+
+- `wsx fetch` runs `git fetch --prune` against each resolved repo path in workspace config order.
+- `wsx fetch` prints one summary line per repo in plain text and supports `--json` for machine-readable output.
+- `wsx fetch --json` emits one object per ref with `name`, `path`, `resolved_path`, `summary`, `error`, and `exit_code`.
+- `wsx fetch --parallel` may execute fetches concurrently, but output ordering must remain aligned with workspace config order.
+- `wsx fetch` must exit non-zero when any repo fetch fails or when a configured path cannot be resolved.
+
+**Verification status:**
+
+- `go test ./cmd`
+- `go test ./...`
+
 ### Task B3 - `exec`
 
 **Owner:** Agent 10

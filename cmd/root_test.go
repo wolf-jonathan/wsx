@@ -24,6 +24,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 	for _, snippet := range []string{
 		"Currently supported commands:",
 		"add",
+		"fetch",
 		"init",
 		"list",
 		"remove",
