@@ -813,7 +813,7 @@ This phase is expanded because Windows support is a first-class requirement from
 ### Phase 5 - AI Commands
 **Goal:** `tree`, `grep`, `dump`, `prompt`, `claude-init`, `skill-install`, `skill-uninstall`.
 
-- [ ] Implement `internal/ai/detect.go` - language/framework detection per repo
+- [x] Implement `internal/ai/detect.go` - language/framework detection per repo
 - [x] Add `github.com/sabhiram/go-gitignore` dependency
 - [x] Implement `internal/ai/ignore.go` - gitignore chain loader (global + repo + nested)
 - [ ] Implement `wsx tree` - respects gitignore by default, `--all` to bypass

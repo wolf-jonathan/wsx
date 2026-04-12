@@ -598,6 +598,43 @@ into separate owned modules.
 - `internal/ai/detect.go`
 - `internal/ai/detect_test.go`
 
+**TDD scope:**
+
+- marker-file based language detection
+- common framework detection for Node and Python repos
+- stable fallback when no known markers exist
+
+**Progress update (2026-04-12):**
+
+- Added `internal/ai/detect.go` with the initial framework detection seam:
+  - `RepoDetection`
+  - `DetectRepo(repoRoot string) (RepoDetection, error)`
+- Implemented marker-file language detection for:
+  - Go via `go.mod`
+  - Node.js via `package.json`
+  - Rust via `Cargo.toml`
+  - Python via `pyproject.toml` or `requirements.txt`
+- Implemented lightweight framework detection for common later prompt-generation use cases:
+  - Node.js: `Next.js`, `Nuxt`, `SvelteKit`, `NestJS`, `Express`, `React`, `Vue`
+  - Python: `FastAPI`, `Django`, `Flask`
+- Added black-box tests in `internal/ai/detect_test.go` for:
+  - Go module detection
+  - Next.js detection from `package.json`
+  - FastAPI detection from `pyproject.toml`
+  - Rust detection from `Cargo.toml`
+  - stable `Unknown` fallback when no recognized markers exist
+
+**Frozen contracts after this slice:**
+
+- `internal/ai` now owns repo language/framework detection for later `prompt` and `claude-init` work instead of scattering marker detection across commands.
+- `DetectRepo` is intentionally marker-file driven and returns a compact `RepoDetection` with `language`, optional `framework`, and `indicators`.
+- Unknown repos must still return a successful `RepoDetection` with `Language: "Unknown"` rather than failing.
+
+**Verification status:**
+
+- `go test ./internal/ai`
+- `go test ./...`
+
 ### Task C2 - `tree`
 
 **Owner:** Agent 13

@@ -10,7 +10,8 @@ without copying or merging anything.
 This project is in early implementation. The shared workspace layer, Windows
 link handling, `wsx init`, `wsx add`, `wsx remove`, `wsx list`, `wsx status`,
 `wsx fetch`, and `wsx exec` are in place, and the initial `internal/ai`
-gitignore chain loader is now implemented for the next AI-facing command wave.
+gitignore and framework-detection seams are implemented for the next
+AI-facing command wave.
 The product direction remains defined in
 [docs/wsx-design-plan.md](docs/wsx-design-plan.md).
 
@@ -72,7 +73,7 @@ More detailed structure and implementation phases are documented in
 
 Parallel Track C from the implementation plan:
 
-- add framework detection, then build `tree`, `grep`, and `dump` on top of the new ignore layer
+- build `tree`, `grep`, and `dump` on top of the new ignore layer
 
 ## Development
 
