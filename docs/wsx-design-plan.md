@@ -561,22 +561,29 @@ payments-debug/
 
 ---
 
-#### `wsx claude-init`
-Generates a `CLAUDE.md` file in the workspace root.
+#### `wsx agent-init`
+Generates shared AI instruction files in the workspace root.
 
 ```bash
-wsx claude-init
+wsx agent-init
 ```
 
-Creates a `CLAUDE.md` that Claude Code reads automatically when opened in this directory. Contents include:
+Creates:
+
+- `CLAUDE.md`
+- `AGENTS.md`
+- `.github/copilot-instructions.md`
+
+All three files contain the same generated workspace instructions so Claude Code, agent-oriented tools, and GitHub Copilot can all pick up the same context automatically. Contents include:
 
 - Workspace name and purpose (prompts user if not set)
 - List of all repos with their detected languages
 - Workspace directory structure
-- Guidance for Claude on how to navigate the symlinked layout
+- Guidance on how to navigate the symlinked layout
+- Imported sections from any linked-repo `CLAUDE.md`, `AGENTS.md`, and `.github/copilot-instructions.md` files, clearly labeled by repo and source file
 - Any custom notes (editable section at the bottom)
 
-Claude Code reads `CLAUDE.md` on every session, so this keeps the AI consistently oriented across sessions.
+Claude Code reads `CLAUDE.md` automatically, many agent tools look for `AGENTS.md`, and GitHub Copilot can use `.github/copilot-instructions.md`. This keeps multiple AI surfaces consistently oriented across sessions.
 
 ---
 
@@ -672,7 +679,7 @@ wsx/
 │   ├── tree.go
 │   ├── grep.go
 │   ├── prompt.go
-│   └── claude.go
+│   └── agent.go
 └── internal/
     ├── workspace/
     │   ├── workspace.go       ← config load/save (placeholders kept intact on load)
@@ -684,7 +691,7 @@ wsx/
         ├── dump.go            ← file traversal and formatting
         ├── grep.go            ← cross-repo search
         ├── prompt.go          ← prompt generation
-        ├── claude.go          ← CLAUDE.md generation
+        ├── agent.go           ← workspace instruction generation
         ├── skill.go           ← skill install and uninstall logic
         ├── detect.go          ← language/framework detection
         └── ignore.go          ← gitignore chain loader (global + repo + nested)
@@ -811,7 +818,7 @@ This phase is expanded because Windows support is a first-class requirement from
 ---
 
 ### Phase 5 - AI Commands
-**Goal:** `tree`, `grep`, `dump`, `prompt`, `claude-init`, `skill-install`, `skill-uninstall`.
+**Goal:** `tree`, `grep`, `dump`, `prompt`, `agent-init`, `skill-install`, `skill-uninstall`.
 
 - [x] Implement `internal/ai/detect.go` - language/framework detection per repo
 - [x] Add `github.com/sabhiram/go-gitignore` dependency
@@ -820,7 +827,7 @@ This phase is expanded because Windows support is a first-class requirement from
 - [ ] Implement `wsx grep` - cross-repo search with `--include`, `--exclude`, `--context`, `--json`
 - [ ] Implement `wsx dump` - mandatory filter, gitignore support, all flags
 - [ ] Implement `wsx prompt`
-- [ ] Implement `wsx claude-init`
+- [ ] Implement `wsx agent-init`
 - [ ] Implement `wsx skill-install` to install the bundled top-level `SKILL.md` locally or globally
 - [ ] Implement `wsx skill-uninstall` to remove the installed skill from local or global scope
 

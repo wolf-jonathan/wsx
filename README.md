@@ -9,7 +9,7 @@ without copying or merging anything.
 
 This project is in early implementation. The shared workspace layer, Windows
 link handling, `wsx init`, `wsx add`, `wsx remove`, `wsx list`, `wsx status`,
-`wsx fetch`, `wsx exec`, `wsx tree`, and `wsx grep` are in place, and the initial
+`wsx fetch`, `wsx exec`, `wsx tree`, `wsx grep`, and `wsx agent-init` are in place, and the initial
 `internal/ai` gitignore and framework-detection seams are implemented for the
 next AI-facing command wave.
 The product direction remains defined in
@@ -41,7 +41,7 @@ repos independent.
 - `wsx add` and `wsx remove` to manage linked repos
 - `wsx list` and `wsx doctor` to inspect workspace health
 - `wsx status`, `wsx fetch`, and `wsx exec` for git and command orchestration
-- `wsx tree`, `wsx grep`, `wsx dump`, `wsx prompt`, and `wsx claude-init` for AI workflows
+- `wsx tree`, `wsx grep`, `wsx dump`, `wsx prompt`, and `wsx agent-init` for AI workflows
 - `wsx skill-install` and `wsx skill-uninstall` to manage the bundled agent `SKILL.md`
 
 ## Planned Project Layout

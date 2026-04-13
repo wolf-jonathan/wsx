@@ -48,7 +48,7 @@ wsx/
 │   ├── tree.go
 │   ├── grep.go
 │   ├── prompt.go
-│   └── claude.go
+│   └── agent.go
 └── internal/
     ├── workspace/
     ├── git/

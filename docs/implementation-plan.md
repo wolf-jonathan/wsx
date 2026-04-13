@@ -626,7 +626,7 @@ into separate owned modules.
 
 **Frozen contracts after this slice:**
 
-- `internal/ai` now owns repo language/framework detection for later `prompt` and `claude-init` work instead of scattering marker detection across commands.
+- `internal/ai` now owns repo language/framework detection for later `prompt` and `agent-init` work instead of scattering marker detection across commands.
 - `DetectRepo` is intentionally marker-file driven and returns a compact `RepoDetection` with `language`, optional `framework`, and `indicators`.
 - Unknown repos must still return a successful `RepoDetection` with `Language: "Unknown"` rather than failing.
 
@@ -758,19 +758,52 @@ into separate owned modules.
 
 - framework detection
 
-### Task C6 - `claude-init`
+### Task C6 - `agent-init`
 
 **Owner:** Agent 17
 
 **Files:**
 
-- `cmd/claude.go`
-- `internal/ai/claude.go`
+- `cmd/agent.go`
+- `internal/ai/agent.go`
 - related tests
 
 **Depends on:**
 
 - framework detection
+
+**Progress update (2026-04-13):**
+
+- Added `internal/ai/agent.go` with workspace-instruction generation helpers:
+  - `InstructionRepo`
+  - `WorkspaceInstructions`
+  - `GenerateWorkspaceInstructions(...)`
+  - `RenderWorkspaceInstructions(...)`
+  - `WriteWorkspaceInstructionFiles(...)`
+- Added `cmd/agent.go` and wired `agent-init` into the root Cobra command and help text.
+- Expanded the original slice so one command now writes three synchronized top-level files:
+  - `CLAUDE.md`
+  - `AGENTS.md`
+  - `.github/copilot-instructions.md`
+- Implemented linked-repo instruction import behavior:
+  - scans each resolved repo for `CLAUDE.md`, `AGENTS.md`, and `.github/copilot-instructions.md`
+  - includes imported content in clearly labeled repo-specific sections
+  - keeps workspace-wide rules and repo-scoped instructions distinct in the generated output
+- Added black-box tests in:
+  - `internal/ai/agent_test.go` for detection summaries, imported instruction rendering, and file writing
+  - `cmd/agent_test.go` for end-to-end command output and generated workspace files
+
+**Frozen contracts after this slice:**
+
+- `wsx agent-init` generates shared workspace instruction content and writes it to `CLAUDE.md`, `AGENTS.md`, and `.github/copilot-instructions.md` in the workspace root.
+- Imported linked-repo instruction files must be labeled by both repo name and source file path in the generated output.
+- Repo instruction discovery for this slice includes `CLAUDE.md`, `AGENTS.md`, and `.github/copilot-instructions.md` anywhere under a linked repo, excluding `.git/`.
+
+**Verification status:**
+
+- Pending local verification in this Codex environment because `go` is not available on `PATH`:
+  - `go test ./internal/ai ./cmd`
+  - `go test ./...`
 
 ## Keep `doctor` Separate
 
@@ -819,7 +852,7 @@ describes real command behavior instead of speculation.
 3. `init`
 4. In parallel: `add`, `remove`, `list`
 5. In parallel: git runner layer, then `status`, `fetch`, `exec`
-6. In parallel: ignore handling, detection, then `tree`, `grep`, `dump`, `prompt`, `claude-init`
+6. In parallel: ignore handling, detection, then `tree`, `grep`, `dump`, `prompt`, `agent-init`
 7. `doctor`
 8. `SKILL.md`, `skill-install`, `skill-uninstall`
 9. Full integration pass across the whole CLI
