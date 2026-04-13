@@ -41,7 +41,7 @@ func TestGrepWorkspaceRespectsIgnoresAndGlobFilters(t *testing.T) {
 
 func TestGrepWorkspaceIncludesContextLines(t *testing.T) {
 	repoRoot := t.TempDir()
-	writeGrepFile(t, filepath.Join(repoRoot, "src", "client.ts"), "one\nbefore target\ntarget call\nafter target\nfive\n")
+	writeGrepFile(t, filepath.Join(repoRoot, "src", "client.ts"), "one\nbefore target\ntarget call\nafter call\nfive\n")
 
 	matches, err := GrepWorkspace([]GrepRepo{
 		{Name: "payments-api", Root: repoRoot},
@@ -72,8 +72,8 @@ func TestGrepWorkspaceIncludesContextLines(t *testing.T) {
 	if len(second.Before) != 1 || second.Before[0] != "before target" {
 		t.Fatalf("second.Before = %#v, want [before target]", second.Before)
 	}
-	if len(second.After) != 1 || second.After[0] != "after target" {
-		t.Fatalf("second.After = %#v, want [after target]", second.After)
+	if len(second.After) != 1 || second.After[0] != "after call" {
+		t.Fatalf("second.After = %#v, want [after call]", second.After)
 	}
 }
 

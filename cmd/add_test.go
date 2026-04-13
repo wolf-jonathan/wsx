@@ -64,8 +64,8 @@ func TestAddCreatesLinkAndStoresParameterizedPath(t *testing.T) {
 		t.Fatalf("EvalSymlinks(%q) error = %v", linkPath, err)
 	}
 
-	if resolved != target {
-		t.Fatalf("resolved link target = %q, want %q", resolved, target)
+	if !sameDirectoryTarget(t, resolved, target) {
+		t.Fatalf("resolved link target = %q, want same target as %q", resolved, target)
 	}
 }
 
@@ -114,8 +114,8 @@ func TestAddSupportsParameterizedInputAndCustomName(t *testing.T) {
 		t.Fatalf("EvalSymlinks(%q) error = %v", linkPath, err)
 	}
 
-	if resolved != target {
-		t.Fatalf("resolved link target = %q, want %q", resolved, target)
+	if !sameDirectoryTarget(t, resolved, target) {
+		t.Fatalf("resolved link target = %q, want same target as %q", resolved, target)
 	}
 }
 
@@ -214,4 +214,20 @@ func mustInitWorkspace(t *testing.T, root, name string) {
 	if err := cmd.ExecuteCommand(command); err != nil {
 		t.Fatalf("init ExecuteCommand() error = %v", err)
 	}
+}
+
+func sameDirectoryTarget(t *testing.T, left, right string) bool {
+	t.Helper()
+
+	leftInfo, err := os.Stat(left)
+	if err != nil {
+		t.Fatalf("Stat(%q) error = %v", left, err)
+	}
+
+	rightInfo, err := os.Stat(right)
+	if err != nil {
+		t.Fatalf("Stat(%q) error = %v", right, err)
+	}
+
+	return os.SameFile(leftInfo, rightInfo)
 }

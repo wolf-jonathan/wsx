@@ -726,9 +726,11 @@ into separate owned modules.
 
 **Verification status:**
 
-- Pending local verification in this Codex environment because `go` is not available on `PATH`:
-  - `go test ./internal/ai ./cmd`
+- Verified on 2026-04-13 with:
   - `go test ./...`
+- Follow-up note:
+  - stabilized `cmd/add_test.go` on Windows by comparing resolved link targets with `os.SameFile` instead of raw path strings, because `filepath.EvalSymlinks` may return a different canonical spelling for the same directory
+  - corrected the `internal/ai/grep_test.go` context fixture so it contains exactly two pattern matches, which keeps the test aligned with the documented "one result per literal matching line" contract
 
 ### Task C4 - `dump`
 
