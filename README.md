@@ -37,7 +37,7 @@ Requirements:
 Install the latest tagged version globally:
 
 ```powershell
-go install github.com/jwolf/wsx@latest
+go install github.com/wolf-jonathan/workspace-x@latest
 ```
 
 That works on Windows, Linux, and macOS and installs `wsx` into your Go bin
@@ -46,7 +46,7 @@ directory.
 If you want a local binary without modifying your global Go bin:
 
 ```powershell
-git clone https://github.com/jwolf/wsx.git
+git clone https://github.com/wolf-jonathan/workspace-x.git
 cd wsx
 go build -o wsx.exe .
 ```
@@ -77,7 +77,7 @@ builds archives for each platform, and uploads them to the GitHub release.
 
 Package managers are not wired yet. The practical rollout order is:
 
-1. `go install github.com/jwolf/wsx@latest`
+1. `go install github.com/wolf-jonathan/workspace-x@latest`
 2. GitHub Releases with prebuilt binaries
 3. Scoop and Homebrew
 4. `winget` after the release format is stable

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/jwolf/wsx/internal/ai"
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/ai"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
 )
 

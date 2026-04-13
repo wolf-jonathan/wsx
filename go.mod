@@ -1,4 +1,4 @@
-module github.com/jwolf/wsx
+module github.com/wolf-jonathan/workspace-x
 
 go 1.22.0
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jwolf/wsx/cmd"
+	"github.com/wolf-jonathan/workspace-x/cmd"
 )
 
 func main() {

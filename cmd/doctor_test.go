@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func TestDoctorReportsHealthyWorkspace(t *testing.T) {

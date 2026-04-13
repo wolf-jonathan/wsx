@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	wsxgit "github.com/jwolf/wsx/internal/git"
+	wsxgit "github.com/wolf-jonathan/workspace-x/internal/git"
 )
 
 func TestStatusUsesGitShortBranchCommand(t *testing.T) {

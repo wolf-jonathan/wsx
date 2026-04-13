@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func TestSaveConfigWritesExpectedSchema(t *testing.T) {

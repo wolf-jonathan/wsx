@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
 )
 

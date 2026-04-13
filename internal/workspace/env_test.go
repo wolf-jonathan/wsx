@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func TestLoadEnvParsesKeyValuePairsAndIgnoresComments(t *testing.T) {

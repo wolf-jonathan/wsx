@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jwolf/wsx/cmd"
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/cmd"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func TestInitCreatesWorkspaceFiles(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func validateWorkspaceLinkTarget(root, name, resolvedTarget string) (string, error) {

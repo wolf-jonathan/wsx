@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jwolf/wsx/cmd"
+	"github.com/wolf-jonathan/workspace-x/cmd"
 )
 
 func TestTreeShowsWorkspaceStructureWithDefaultIgnores(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jwolf/wsx/internal/ai"
+	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/spf13/cobra"
 )
 

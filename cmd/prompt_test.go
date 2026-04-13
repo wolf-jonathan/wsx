@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jwolf/wsx/internal/workspace"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func TestPromptRendersWorkspaceSummaryTreeAndDetections(t *testing.T) {

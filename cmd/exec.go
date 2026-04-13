@@ -9,8 +9,8 @@ import (
 	"sync"
 	"text/tabwriter"
 
-	wsxgit "github.com/jwolf/wsx/internal/git"
-	"github.com/jwolf/wsx/internal/workspace"
+	wsxgit "github.com/wolf-jonathan/workspace-x/internal/git"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
 )
 
