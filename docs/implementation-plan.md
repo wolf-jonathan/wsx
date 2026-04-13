@@ -792,6 +792,35 @@ into separate owned modules.
 
 - framework detection
 
+**Progress update (2026-04-13):**
+
+- Added `internal/ai/prompt.go` with the initial prompt-rendering seam:
+  - `PromptRepo`
+  - `WorkspacePrompt`
+  - `GenerateWorkspacePrompt(...)`
+  - `RenderWorkspacePrompt(...)`
+- Added `cmd/prompt.go` and wired `prompt` into the root Cobra command and help text.
+- Implemented workspace prompt generation behavior for AI-facing use:
+  - detects each linked repo language and framework via `internal/ai.DetectRepo`
+  - renders repo summaries with resolved absolute repo roots
+  - includes a shallow workspace tree for navigation context
+  - supports `--copy` to place the generated prompt onto the system clipboard
+- Added black-box tests in:
+  - `internal/ai/prompt_test.go` for repo summaries, framework labeling, tree inclusion, and unknown fallback behavior
+  - `cmd/prompt_test.go` for end-to-end command output and `--copy` clipboard behavior
+
+**Frozen contracts after this slice:**
+
+- `wsx prompt` emits plain text only in this slice and is designed to be pasted directly into an AI system prompt.
+- Repo summaries in `wsx prompt` must include the linked repo name, resolved absolute path, detected language, and detected framework when present.
+- `wsx prompt` includes a workspace tree rendered from linked repos in workspace config order.
+- `wsx prompt --copy` copies exactly the emitted prompt text to the clipboard.
+
+**Verification status:**
+
+- `go test ./internal/ai -run Prompt`
+- `go test ./cmd -run "Test(Prompt|RootHelpShowsSupportedCommands)"`
+
 ### Task C6 - `agent-init`
 
 **Owner:** Agent 17

@@ -9,7 +9,7 @@ without copying or merging anything.
 
 This project is in early implementation. The shared workspace layer, Windows
 link handling, `wsx init`, `wsx add`, `wsx remove`, `wsx list`, `wsx status`,
-`wsx fetch`, `wsx exec`, `wsx tree`, `wsx grep`, `wsx dump`, and `wsx agent-init` are in place, and the initial
+`wsx fetch`, `wsx exec`, `wsx tree`, `wsx grep`, `wsx dump`, `wsx prompt`, and `wsx agent-init` are in place, and the initial
 `internal/ai` gitignore and framework-detection seams are implemented for the
 next AI-facing command wave.
 The product direction remains defined in
@@ -73,7 +73,7 @@ More detailed structure and implementation phases are documented in
 
 Parallel Track C from the implementation plan:
 
-- build `prompt` on top of the detection and tree layers
+- finish late-stage commands like `doctor` and skill installation support
 
 ## Development
 

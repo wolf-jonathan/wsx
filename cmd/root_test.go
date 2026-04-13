@@ -31,6 +31,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 		"grep",
 		"init",
 		"list",
+		"prompt",
 		"remove",
 		"status",
 		"tree",

@@ -826,7 +826,7 @@ This phase is expanded because Windows support is a first-class requirement from
 - [x] Implement `wsx tree` - respects gitignore by default, `--all` to bypass
 - [x] Implement `wsx grep` - cross-repo search with `--include`, `--exclude`, `--context`, `--json`
 - [x] Implement `wsx dump` - mandatory filter, gitignore support, all flags
-- [ ] Implement `wsx prompt`
+- [x] Implement `wsx prompt`
 - [x] Implement `wsx agent-init`
 - [ ] Implement `wsx skill-install` to install the bundled top-level `SKILL.md` locally or globally
 - [ ] Implement `wsx skill-uninstall` to remove the installed skill from local or global scope
