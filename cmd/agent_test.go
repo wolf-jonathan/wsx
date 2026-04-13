@@ -72,6 +72,41 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 	}
 }
 
+func TestAgentInitFailsWhenWorkspaceInstructionFileAlreadyExists(t *testing.T) {
+	root := t.TempDir()
+	chdirForTest(t, root)
+	writeAgentWorkspaceConfig(t, root, workspace.Config{
+		Version: "1",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
+		},
+	})
+
+	reposRoot := filepath.Join(t.TempDir(), "repos")
+	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
+	writeAgentEnvFile(t, root, reposRoot)
+	writeAgentCmdFile(t, filepath.Join(root, "CLAUDE.md"), "user-owned\n")
+
+	command := cmd.NewRootCommand()
+	command.SetArgs([]string{"agent-init"})
+	command.SetOut(new(bytes.Buffer))
+	command.SetErr(new(bytes.Buffer))
+
+	err := cmd.ExecuteCommand(command)
+	if err == nil {
+		t.Fatal("ExecuteCommand() error = nil, want existing file error")
+	}
+
+	if !strings.Contains(err.Error(), "CLAUDE.md already exists") {
+		t.Fatalf("error = %q, want existing file message", err.Error())
+	}
+
+	if _, statErr := os.Stat(filepath.Join(root, "AGENTS.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("AGENTS.md should not be created when agent-init fails, stat error = %v", statErr)
+	}
+}
+
 func writeAgentWorkspaceConfig(t *testing.T, root string, cfg workspace.Config) {
 	t.Helper()
 

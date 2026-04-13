@@ -849,6 +849,7 @@ into separate owned modules.
 - Expanded the original slice so one command now writes two synchronized top-level files:
   - `CLAUDE.md`
   - `AGENTS.md`
+- Tightened file ownership behavior so `agent-init` now fails before writing anything when either target file already exists in the workspace root.
 - Implemented linked-repo instruction import behavior:
   - scans each resolved repo for `CLAUDE.md` and `AGENTS.md`
   - includes imported content in clearly labeled repo-specific sections
@@ -860,6 +861,7 @@ into separate owned modules.
 **Frozen contracts after this slice:**
 
 - `wsx agent-init` generates shared workspace instruction content and writes it to `CLAUDE.md` and `AGENTS.md` in the workspace root.
+- `wsx agent-init` must fail without writing anything when either target file already exists in the workspace root.
 - Imported linked-repo instruction files must be labeled by both repo name and source file path in the generated output.
 - Repo instruction discovery for this slice includes `CLAUDE.md` and `AGENTS.md` anywhere under a linked repo, excluding `.git/`.
 

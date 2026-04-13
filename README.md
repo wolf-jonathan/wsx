@@ -211,6 +211,7 @@ wsx exec -- powershell -Command "git fetch; git status"
 
 - Generates synchronized workspace instruction files
 - Writes `CLAUDE.md` and `AGENTS.md`
+- Fails if either file already exists in the workspace root
 
 ### Skill commands
 

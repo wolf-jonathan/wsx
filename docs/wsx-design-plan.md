@@ -573,6 +573,8 @@ Creates:
 - `CLAUDE.md`
 - `AGENTS.md`
 
+The command fails without writing anything if either target file already exists in the workspace root. Existing files are treated as user-owned instructions, not generated output to overwrite.
+
 Both files contain the same generated workspace instructions so Claude Code and agent-oriented tools can pick up the same context automatically. Contents include:
 
 - Workspace name and purpose (prompts user if not set)

@@ -68,6 +68,26 @@ func TestWriteWorkspaceInstructionFilesWritesAllTargets(t *testing.T) {
 	}
 }
 
+func TestWriteWorkspaceInstructionFilesFailsWhenTargetAlreadyExists(t *testing.T) {
+	root := t.TempDir()
+	content := "# Workspace Instructions\n"
+
+	writeAgentTestFile(t, filepath.Join(root, WorkspaceClaudeFilePath), "user content\n")
+
+	err := WriteWorkspaceInstructionFiles(root, content)
+	if err == nil {
+		t.Fatal("WriteWorkspaceInstructionFiles() error = nil, want existing file error")
+	}
+
+	if !strings.Contains(err.Error(), WorkspaceClaudeFilePath) {
+		t.Fatalf("error = %q, want mention of %q", err.Error(), WorkspaceClaudeFilePath)
+	}
+
+	if _, statErr := os.Stat(filepath.Join(root, WorkspaceAgentsFilePath)); !os.IsNotExist(statErr) {
+		t.Fatalf("%s should not be created when preflight fails, stat error = %v", WorkspaceAgentsFilePath, statErr)
+	}
+}
+
 func writeAgentTestFile(t *testing.T, path, content string) {
 	t.Helper()
 

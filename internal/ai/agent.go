@@ -258,6 +258,15 @@ func WriteWorkspaceInstructionFiles(root string, content string) error {
 
 	for _, relativePath := range files {
 		targetPath := filepath.Join(root, filepath.FromSlash(relativePath))
+		if _, err := os.Stat(targetPath); err == nil {
+			return fmt.Errorf("%s already exists", relativePath)
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("stat %s: %w", relativePath, err)
+		}
+	}
+
+	for _, relativePath := range files {
+		targetPath := filepath.Join(root, filepath.FromSlash(relativePath))
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
 			return fmt.Errorf("create %s: %w", filepath.Dir(targetPath), err)
 		}
