@@ -73,6 +73,7 @@ wsx/
 
 ## Delivery And Handoff Expectations
 
+- After implementing a feature, provide a recommended git commit message.
 - After implementing a feature, explain how to run it locally.
 - After implementing a feature, explain how to run the relevant tests locally.
 - After each implementation, update the CLI help output so `--help` reflects everything currently supported.

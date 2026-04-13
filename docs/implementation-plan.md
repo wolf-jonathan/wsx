@@ -698,6 +698,38 @@ into separate owned modules.
 
 - ignore handling
 
+**Progress update (2026-04-13):**
+
+- Added `internal/ai/grep.go` with the initial search seam:
+  - `GrepRepo`
+  - `GrepOptions`
+  - `GrepMatch`
+  - `GrepWorkspace(repos, pattern, options)`
+- Added `cmd/grep.go` and wired `grep` into the root Cobra command and help text.
+- Implemented cross-repo text search behavior for AI-facing use:
+  - preserves workspace config order by searching repos in config order
+  - respects the shared ignore matcher by default
+  - supports comma-separated `--include` and `--exclude` glob filters
+  - supports `--context` in both plain-text and JSON output
+  - skips binary files and exits non-zero when no matches are found
+- Added black-box tests in:
+  - `internal/ai/grep_test.go` for ignore handling, include/exclude filtering, context lines, and binary-file skipping
+  - `cmd/grep_test.go` for end-to-end text output, `--json`, and no-match exit behavior
+
+**Frozen contracts after this slice:**
+
+- `internal/ai.GrepWorkspace` owns ignore-aware cross-repo text search for later AI-facing commands instead of duplicating traversal logic inside commands.
+- `wsx grep <pattern>` searches linked repos in workspace config order and emits plain text by default.
+- `wsx grep --json` emits one object per match with `repo`, `file`, `line`, `match`, and optional context arrays when requested.
+- `wsx grep` respects `.gitignore` by default and supports `--include`, `--exclude`, and `--context`.
+- `wsx grep` must exit non-zero when no matches are found.
+
+**Verification status:**
+
+- Pending local verification in this Codex environment because `go` is not available on `PATH`:
+  - `go test ./internal/ai ./cmd`
+  - `go test ./...`
+
 ### Task C4 - `dump`
 
 **Owner:** Agent 15

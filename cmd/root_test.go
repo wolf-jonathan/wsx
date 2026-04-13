@@ -26,6 +26,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 		"add",
 		"exec",
 		"fetch",
+		"grep",
 		"init",
 		"list",
 		"remove",

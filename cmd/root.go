@@ -16,6 +16,7 @@ Currently supported commands:
   add     Add a linked repository to the current workspace
   exec    Run a command across linked repositories
   fetch   Run git fetch across linked repositories
+  grep    Search for a pattern across linked repositories
   init    Initialize a workspace in the current directory
   list    List linked repositories in the current workspace
   remove  Remove a linked repository from the current workspace
@@ -31,6 +32,7 @@ Only implemented commands are shown below.`,
 	root.AddCommand(newAddCommand())
 	root.AddCommand(newExecCommand())
 	root.AddCommand(newFetchCommand())
+	root.AddCommand(newGrepCommand())
 	root.AddCommand(newInitCommand())
 	root.AddCommand(newListCommand())
 	root.AddCommand(newRemoveCommand())
