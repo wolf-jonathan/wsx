@@ -79,10 +79,6 @@ func (w treeWalker) renderRepo(builder *strings.Builder, repo TreeRepo, branch, 
 }
 
 func (w treeWalker) renderDir(builder *strings.Builder, repoRoot, currentDir, prefix string, depth int, matcher *IgnoreMatcher) error {
-	if w.options.MaxDepth > 0 && depth >= w.options.MaxDepth {
-		return nil
-	}
-
 	entries, err := os.ReadDir(currentDir)
 	if err != nil {
 		return err
@@ -105,6 +101,14 @@ func (w treeWalker) renderDir(builder *strings.Builder, repoRoot, currentDir, pr
 		}
 		return strings.ToLower(filtered[i].Name()) < strings.ToLower(filtered[j].Name())
 	})
+
+	if w.options.MaxDepth > 0 && depth >= w.options.MaxDepth {
+		if len(filtered) > 0 {
+			builder.WriteString(prefix)
+			builder.WriteString("└── ...\n")
+		}
+		return nil
+	}
 
 	for index, entry := range filtered {
 		path := filepath.Join(currentDir, entry.Name())

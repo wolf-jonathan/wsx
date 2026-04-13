@@ -119,3 +119,46 @@ func TestTreeAllAndDepthFlagsChangeTraversal(t *testing.T) {
 		}
 	}
 }
+
+func TestTreeUsesBoundedDefaultDepth(t *testing.T) {
+	root := t.TempDir()
+	chdirForTest(t, root)
+	mustInitWorkspace(t, root, "payments-debug")
+
+	repoRoot := filepath.Join(t.TempDir(), "backend")
+	if err := os.MkdirAll(filepath.Join(repoRoot, "src", "api", "handlers"), 0o755); err != nil {
+		t.Fatalf("MkdirAll(src/api/handlers) error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(repoRoot, "src", "api", "handlers", "user.go"), []byte("package handlers\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(user.go) error = %v", err)
+	}
+
+	add := cmd.NewRootCommand()
+	add.SetArgs([]string{"add", repoRoot})
+	add.SetOut(new(bytes.Buffer))
+	add.SetErr(new(bytes.Buffer))
+	if err := cmd.ExecuteCommand(add); err != nil {
+		t.Fatalf("add ExecuteCommand() error = %v", err)
+	}
+
+	stdout := new(bytes.Buffer)
+	command := cmd.NewRootCommand()
+	command.SetArgs([]string{"tree"})
+	command.SetOut(stdout)
+	command.SetErr(new(bytes.Buffer))
+	if err := cmd.ExecuteCommand(command); err != nil {
+		t.Fatalf("tree ExecuteCommand() error = %v", err)
+	}
+
+	output := stdout.String()
+	for _, snippet := range []string{"src/", "api/", "..."} {
+		if !strings.Contains(output, snippet) {
+			t.Fatalf("tree output = %q, want substring %q", output, snippet)
+		}
+	}
+	for _, unwanted := range []string{"handlers/", "user.go"} {
+		if strings.Contains(output, unwanted) {
+			t.Fatalf("tree output = %q, want %q omitted by default depth", output, unwanted)
+		}
+	}
+}

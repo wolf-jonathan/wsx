@@ -7,7 +7,7 @@ import (
 )
 
 func newTreeCommand() *cobra.Command {
-	var depth int
+	depth := 2
 	var showAll bool
 
 	command := &cobra.Command{
@@ -51,7 +51,7 @@ func newTreeCommand() *cobra.Command {
 		},
 	}
 
-	command.Flags().IntVar(&depth, "depth", 0, "Limit tree depth per repository (0 means unlimited)")
+	command.Flags().IntVar(&depth, "depth", 2, "Limit tree depth per repository (default 2, 0 means unlimited)")
 	command.Flags().BoolVar(&showAll, "all", false, "Show ignored and default-excluded files")
 	return command
 }

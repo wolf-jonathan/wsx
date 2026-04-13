@@ -12,6 +12,7 @@ func TestGenerateWorkspaceInstructionsIncludesRepoSpecificInstructionFiles(t *te
 	writeAgentTestFile(t, filepath.Join(authRoot, "go.mod"), "module example.com/auth\n")
 	writeAgentTestFile(t, filepath.Join(authRoot, "CLAUDE.md"), "# Auth Claude\nUse go test ./...\n")
 	writeAgentTestFile(t, filepath.Join(authRoot, "docs", "AGENTS.md"), "# Auth Agents\nUse the auth repo policy.\n")
+	writeAgentTestFile(t, filepath.Join(authRoot, "AGENTS.md"), "# Root Auth Agents\nUse the root policy.\n")
 
 	frontendRoot := t.TempDir()
 	writeAgentTestFile(t, filepath.Join(frontendRoot, "package.json"), "{\n  \"dependencies\": {\"react\": \"1.0.0\"}\n}\n")
@@ -33,10 +34,10 @@ func TestGenerateWorkspaceInstructionsIncludesRepoSpecificInstructionFiles(t *te
 		"`frontend` (" + filepath.ToSlash(frontendRoot) + ") - Node.js / React",
 		"### Repo: `auth-service`",
 		"#### Source: `CLAUDE.md`",
-		"#### Source: `docs/AGENTS.md`",
+		"#### Source: `AGENTS.md`",
 		"This section applies when working in linked repo `auth-service`.",
 		"## Auth Claude",
-		"## Auth Agents",
+		"## Root Auth Agents",
 		"### Repo: `frontend`",
 		"No repo-specific instruction files were found for this repo.",
 	} {
@@ -47,7 +48,9 @@ func TestGenerateWorkspaceInstructionsIncludesRepoSpecificInstructionFiles(t *te
 
 	for _, forbidden := range []string{
 		"\n# Auth Claude\n",
-		"\n# Auth Agents\n",
+		"\n# Root Auth Agents\n",
+		"docs/AGENTS.md",
+		"## Auth Agents",
 	} {
 		if strings.Contains(content, forbidden) {
 			t.Fatalf("instructions content = %q, should not contain %q", content, forbidden)

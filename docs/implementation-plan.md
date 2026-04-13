@@ -851,10 +851,13 @@ into separate owned modules.
   - `AGENTS.md`
 - Tightened file ownership behavior so `agent-init` now fails before writing anything when either target file already exists in the workspace root.
 - Implemented linked-repo instruction import behavior:
-  - scans each resolved repo for `CLAUDE.md` and `AGENTS.md`
+  - checks only the top level of each resolved repo for `CLAUDE.md` and `AGENTS.md`
   - includes imported content in clearly labeled repo-specific sections
   - keeps workspace-wide rules and repo-scoped instructions distinct in the generated output
   - demotes imported Markdown headers by one level so generated top-level sections remain reserved for workspace, comments, and repo blocks
+- Tightened tree output behavior for large workspaces:
+  - `wsx tree` now defaults to depth `2` instead of unlimited traversal
+  - depth-limited directories render an explicit `...` truncation marker
 - Added black-box tests in:
   - `internal/ai/agent_test.go` for detection summaries, imported instruction rendering, and file writing
   - `cmd/agent_test.go` for end-to-end command output and generated workspace files

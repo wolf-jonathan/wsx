@@ -86,6 +86,9 @@ func TestRenderWorkspaceTreeHonorsDepthLimit(t *testing.T) {
 	if !strings.Contains(output, "src/") {
 		t.Fatalf("tree output = %q, want first-level child", output)
 	}
+	if !strings.Contains(output, "...") {
+		t.Fatalf("tree output = %q, want truncation marker", output)
+	}
 	for _, unwanted := range []string{"api/", "handler.go"} {
 		if strings.Contains(output, unwanted) {
 			t.Fatalf("tree output = %q, want %q omitted by depth limit", output, unwanted)

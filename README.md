@@ -188,6 +188,8 @@ wsx exec -- powershell -Command "git fetch; git status"
 - Shows a clean workspace tree
 - Respects `.gitignore` by default
 - `--all` includes ignored and default-excluded files
+- Defaults to `--depth 2` to keep large workspaces readable; use `--depth 0` for unlimited traversal
+- Emits `...` when a directory is truncated by the active depth limit
 
 `wsx grep <pattern> [--include glob,...] [--exclude glob,...] [--context N] [--json]`
 
@@ -212,6 +214,7 @@ wsx exec -- powershell -Command "git fetch; git status"
 - Generates synchronized workspace instruction files
 - Writes `CLAUDE.md` and `AGENTS.md`
 - Fails if either file already exists in the workspace root
+- Imports only top-level linked-repo `CLAUDE.md` and `AGENTS.md` files
 
 ### Skill commands
 

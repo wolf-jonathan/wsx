@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
@@ -181,74 +180,32 @@ func hasImportedInstructions(repos []WorkspaceInstructionRepo) bool {
 }
 
 func findImportedInstructions(repoRoot string) ([]ImportedInstruction, error) {
-	paths := make([]string, 0, 4)
-
-	err := filepath.WalkDir(repoRoot, func(path string, entry os.DirEntry, err error) error {
+	imported := make([]ImportedInstruction, 0, 2)
+	for _, relativePath := range []string{WorkspaceAgentsFilePath, WorkspaceClaudeFilePath} {
+		path := filepath.Join(repoRoot, filepath.FromSlash(relativePath))
+		info, err := os.Stat(path)
 		if err != nil {
-			return err
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
+		}
+		if info.IsDir() {
+			continue
 		}
 
-		if entry.IsDir() && entry.Name() == ".git" {
-			return filepath.SkipDir
-		}
-		if entry.IsDir() {
-			return nil
-		}
-
-		relativePath, err := filepath.Rel(repoRoot, path)
-		if err != nil {
-			return err
-		}
-
-		if isImportedInstructionPath(relativePath) {
-			paths = append(paths, path)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Strings(paths)
-
-	imported := make([]ImportedInstruction, 0, len(paths))
-	for _, path := range paths {
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}
 
-		relativePath, err := filepath.Rel(repoRoot, path)
-		if err != nil {
-			return nil, err
-		}
-
 		imported = append(imported, ImportedInstruction{
-			Path:    filepath.ToSlash(relativePath),
+			Path:    relativePath,
 			Content: string(content),
 		})
 	}
 
 	return imported, nil
-}
-
-func isImportedInstructionPath(relativePath string) bool {
-	normalized := filepath.ToSlash(filepath.Clean(relativePath))
-	base := pathBase(normalized)
-	if base == "CLAUDE.md" || base == "AGENTS.md" {
-		return true
-	}
-
-	return false
-}
-
-func pathBase(path string) string {
-	parts := strings.Split(path, "/")
-	if len(parts) == 0 {
-		return path
-	}
-	return parts[len(parts)-1]
 }
 
 func normalizeImportedInstructionMarkdown(content string) string {

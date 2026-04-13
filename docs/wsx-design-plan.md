@@ -498,7 +498,8 @@ payments-debug/
 ```
 
 - Excludes common noise dirs by default (`node_modules`, `.git`, `dist`, `vendor`).
-- `--depth <n>` to control how deep the tree goes.
+- Default depth is `2` to keep workspace trees compact. Use `--depth <n>` to control how deep the tree goes, or `--depth 0` for unlimited traversal.
+- When a directory is cut off by the depth limit, render a `...` marker under that directory to make truncation explicit.
 - Respects `.gitignore` by default. `--all` to show everything.
 - Clean output for use in AI system prompts.
 
@@ -581,7 +582,7 @@ Both files contain the same generated workspace instructions so Claude Code and 
 - List of all repos with their detected languages
 - Workspace directory structure
 - Guidance on how to navigate the symlinked layout
-- Imported sections from any linked-repo `CLAUDE.md` and `AGENTS.md` files, clearly labeled by repo and source file
+- Imported sections from top-level linked-repo `CLAUDE.md` and `AGENTS.md` files, clearly labeled by repo and source file
 - Any custom notes (editable section at the bottom)
 
 Claude Code reads `CLAUDE.md` automatically, and many agent tools look for `AGENTS.md`. This keeps multiple AI surfaces consistently oriented across sessions.
