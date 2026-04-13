@@ -963,6 +963,22 @@ describes real command behavior instead of speculation.
   - `go test ./cmd`
   - `go test ./...`
 
+## Distribution Docs
+
+**Progress update (2026-04-13):**
+
+- Expanded `README.md` from a status stub into an operator-facing document with:
+  - source install instructions
+  - quick-start workspace setup
+  - skill install and uninstall instructions for local and global scope
+  - a command-by-command reference aligned with current `--help` output
+- Updated `docs/wsx-design-plan.md` to mark the README and skill installation documentation tasks complete.
+
+**Verification status:**
+
+- Verified on 2026-04-13 with:
+  - `go test ./...`
+
 ## Best Rollout Order
 
 1. Foundation and seams

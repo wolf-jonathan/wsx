@@ -836,13 +836,13 @@ This phase is expanded because Windows support is a first-class requirement from
 ### Phase 6 - Distribution
 **Goal:** Anyone can install it.
 
-- [ ] Write `README.md` with install instructions and full command reference
+- [x] Write `README.md` with install instructions and full command reference
 - [ ] Set up GitHub Actions to build binaries for Windows (amd64, arm64), macOS, and Linux on tag push
 - [ ] Publish Windows installer via `winget` or `scoop` (priority given Windows-first audience)
 - [ ] Add to Homebrew (create a tap: `homebrew-wsx`)
 - [ ] Publish to pkg.go.dev
 - [ ] Add install script: `curl -fsSL https://get.wsx-cli.dev | sh` (Mac/Linux) and PowerShell equivalent for Windows
-- [ ] Document how to install and uninstall the bundled `wsx` skill globally or locally for Claude, Codex, Copilot, and compatible agents
+- [x] Document how to install and uninstall the bundled `wsx` skill globally or locally for Claude, Codex, Copilot, and compatible agents
 
 ---
 
