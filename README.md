@@ -27,14 +27,23 @@ stay in their original locations.
 
 ## Install
 
-`wsx` is not packaged yet for `winget`, Homebrew, or install scripts. Today the
-supported install path is from source.
+The simplest cross-platform install path for developers is Go's native global
+install flow:
 
 Requirements:
 
 - Go 1.22+
 
-Build a local binary:
+Install the latest tagged version globally:
+
+```powershell
+go install github.com/jwolf/wsx@latest
+```
+
+That works on Windows, Linux, and macOS and installs `wsx` into your Go bin
+directory.
+
+If you want a local binary without modifying your global Go bin:
 
 ```powershell
 git clone https://github.com/jwolf/wsx.git
@@ -42,19 +51,36 @@ cd wsx
 go build -o wsx.exe .
 ```
 
-Install into your Go bin directory:
-
-```powershell
-git clone https://github.com/jwolf/wsx.git
-cd wsx
-go install .
-```
-
 Run directly from the repo without installing:
 
 ```powershell
 go run . --help
 ```
+
+## Release distribution
+
+Tagged releases are built automatically for:
+
+- Windows `amd64`, `arm64`
+- Linux `amd64`, `arm64`
+- macOS `amd64`, `arm64`
+
+To publish a release:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That tag triggers GitHub Actions and GoReleaser, which runs the test suite,
+builds archives for each platform, and uploads them to the GitHub release.
+
+Package managers are not wired yet. The practical rollout order is:
+
+1. `go install github.com/jwolf/wsx@latest`
+2. GitHub Releases with prebuilt binaries
+3. Scoop and Homebrew
+4. `winget` after the release format is stable
 
 ## Quick start
 
@@ -152,8 +178,8 @@ selected scope. It never mutates the source [SKILL.md](SKILL.md) in this repo.
 `wsx doctor [--json] [--fix]`
 
 - Validates workspace health and portability
-- Distinguishes interactive TTY behavior from non-interactive use
-- `--fix` requires an interactive terminal before prompting for unresolved variables
+- Reports unresolved variables as errors by default
+- `--fix` is the explicit opt-in for interactive variable resolution and requires a TTY
 
 ### Git and execution commands
 

@@ -1,0 +1,43 @@
+version: 2
+
+project_name: wsx
+
+before:
+  hooks:
+    - go test ./...
+
+builds:
+  - id: wsx
+    main: .
+    binary: wsx
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/jwolf/wsx/cmd.Version={{ .Version }}
+
+archives:
+  - id: default
+    ids:
+      - wsx
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  use: git

@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Version = "dev"
+
 func NewRootCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "wsx",
@@ -13,6 +15,7 @@ func NewRootCommand() *cobra.Command {
 		Long:          "Manage Windows-first AI workspaces.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       Version,
 	}
 
 	root.CompletionOptions.DisableDefaultCmd = true
