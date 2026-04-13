@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"text/tabwriter"
 
 	"github.com/jwolf/wsx/internal/workspace"
@@ -75,7 +74,7 @@ func buildListItem(root string, ref workspace.Ref, env workspace.EnvVars) listIt
 		item.Status = listStatusBroken
 	}
 
-	linkType, err := workspace.DetectLinkType(filepath.Join(root, ref.Name))
+	linkType, err := validateWorkspaceLinkTarget(root, ref.Name, item.ResolvedPath)
 	if err == nil {
 		item.LinkType = linkType
 	} else {

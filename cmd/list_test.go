@@ -141,3 +141,67 @@ func TestListJSONIncludesResolvedPathStatusAndLinkType(t *testing.T) {
 		t.Fatalf("item.Status = %q, want ok", item.Status)
 	}
 }
+
+func TestListMarksRepointedWorkspaceLinkBroken(t *testing.T) {
+	root := t.TempDir()
+	chdirForTest(t, root)
+
+	mustInitWorkspace(t, root, "payments-debug")
+
+	reposRoot := filepath.Join(t.TempDir(), "repos")
+	configuredTarget := filepath.Join(reposRoot, "payments-api")
+	actualTarget := filepath.Join(reposRoot, "wrong-api")
+	for _, dir := range []string{configuredTarget, actualTarget} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("MkdirAll(%q) error = %v", dir, err)
+		}
+	}
+
+	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), []byte("WORK_REPOS="+reposRoot+"\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
+	}
+	if _, err := workspace.CreateLink(actualTarget, filepath.Join(root, "payments-api")); err != nil {
+		t.Fatalf("CreateLink() error = %v", err)
+	}
+	if err := workspace.SaveConfig(root, workspace.Config{
+		Version: "1",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
+		},
+	}); err != nil {
+		t.Fatalf("SaveConfig() error = %v", err)
+	}
+
+	stdout := new(bytes.Buffer)
+	list := cmd.NewRootCommand()
+	list.SetArgs([]string{"list", "--json"})
+	list.SetOut(stdout)
+	list.SetErr(new(bytes.Buffer))
+	if err := cmd.ExecuteCommand(list); err != nil {
+		t.Fatalf("list ExecuteCommand() error = %v", err)
+	}
+
+	var items []struct {
+		Name         string `json:"name"`
+		ResolvedPath string `json:"resolved_path"`
+		LinkType     string `json:"link_type"`
+		Status       string `json:"status"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &items); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if len(items) != 1 {
+		t.Fatalf("len(items) = %d, want 1", len(items))
+	}
+	if items[0].ResolvedPath != configuredTarget {
+		t.Fatalf("item.ResolvedPath = %q, want %q", items[0].ResolvedPath, configuredTarget)
+	}
+	if items[0].Status != "broken" {
+		t.Fatalf("item.Status = %q, want broken", items[0].Status)
+	}
+	if items[0].LinkType != "" {
+		t.Fatalf("item.LinkType = %q, want empty for repointed broken link", items[0].LinkType)
+	}
+}

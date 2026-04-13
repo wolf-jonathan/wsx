@@ -305,7 +305,7 @@ wsx doctor
 
 **Unresolved variable resolution (interactive):**
 
-When a teammate runs `wsx doctor` for the first time on a shared `.wsx.json`, any variable not defined in their `.wsx.env` is caught and resolved interactively:
+When a teammate runs `wsx doctor --fix` for the first time on a shared `.wsx.json`, any variable not defined in their `.wsx.env` is caught and resolved interactively:
 
 ```
   ✗ Unresolved variable: ${WORK_REPOS}
@@ -322,13 +322,13 @@ When a teammate runs `wsx doctor` for the first time on a shared `.wsx.json`, an
   ✓ All refs resolved and valid
 ```
 
-First-time setup is a single `wsx doctor` run. No manual file editing.
+First-time setup is a single `wsx doctor --fix` run. No manual file editing.
 
 **Full list of checks:**
 - `.wsx.json` exists and is valid JSON matching the schema
 - `.wsx.env` exists (warns if missing, offers to create)
 - All variables referenced in `.wsx.json` are defined in `.wsx.env` or environment (interactive resolution if not)
-- Every symlink/junction target exists on disk
+- Every symlink/junction target exists on disk and the workspace link resolves to the configured repo path
 - No duplicate ref names
 - No ref is a parent or child of the workspace directory itself
 - No two refs are nested inside each other
@@ -337,12 +337,13 @@ First-time setup is a single `wsx doctor` run. No manual file editing.
 
 **Interactive vs non-interactive behavior:**
 
-`wsx doctor` detects whether stdin is a TTY at startup and switches modes automatically:
+`wsx doctor` detects whether stdin is a TTY at startup, but interactive resolution is still opt-in:
 
-- **TTY (human at a terminal):** interactive mode. Missing variables trigger prompts, answers are saved to `.wsx.env`.
-- **Non-TTY (piped, CI, AI agent):** non-interactive mode. Missing variables are reported as structured errors. The command exits non-zero. It **never prompts**, never blocks, never writes to `.wsx.env` automatically.
+- **Default `wsx doctor`:** diagnostic mode. Missing variables are reported as structured errors. The command exits non-zero. It **never prompts**, never blocks, and never writes to `.wsx.env` automatically.
+- **`wsx doctor --fix` with a TTY:** interactive fix mode. Missing variables trigger prompts and saved answers are written to `.wsx.env`.
+- **`wsx doctor --fix` without a TTY:** invalid usage. The command errors immediately with `"--fix requires an interactive terminal"` rather than silently blocking.
 
-Use `--fix` to enable interactive resolution explicitly. `--fix` requires a TTY - if stdin is not a terminal, the command errors immediately with `"--fix requires an interactive terminal"` rather than silently blocking. This makes `--fix` safe to use in scripts that may or may not have a TTY attached:
+Use `--fix` to enable interactive resolution explicitly:
 ```
 wsx doctor --fix
 ```
@@ -725,7 +726,7 @@ This phase is expanded because Windows support is a first-class requirement from
 **Goal:** Anyone can install it.
 
 - [x] Write `README.md` with install instructions and full command reference
-- [ ] Set up GitHub Actions to build binaries for Windows (amd64, arm64), macOS, and Linux on tag push
+- [x] Set up GitHub Actions to build binaries for Windows (amd64, arm64), macOS, and Linux on tag push
 - [ ] Publish Windows installer via `winget` or `scoop` (priority given Windows-first audience)
 - [ ] Add to Homebrew (create a tap: `homebrew-wsx`)
 - [ ] Publish to pkg.go.dev

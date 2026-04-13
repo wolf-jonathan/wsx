@@ -68,11 +68,18 @@ func newDoctorCommand() *cobra.Command {
 		Short: "Validate workspace health and portability",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if fix && !doctorIsTerminal() {
+			isTerminal := doctorIsTerminal()
+			if fix && !isTerminal {
 				return errors.New("--fix requires an interactive terminal")
 			}
 
-			report, err := runDoctor(cmd.InOrStdin(), cmd.OutOrStdout(), doctorIsTerminal())
+			interactive := fix && isTerminal
+			progressOutput := cmd.OutOrStdout()
+			if jsonOutput {
+				progressOutput = cmd.ErrOrStderr()
+			}
+
+			report, err := runDoctor(cmd.InOrStdin(), progressOutput, interactive)
 			if err != nil {
 				return err
 			}
@@ -95,7 +102,7 @@ func newDoctorCommand() *cobra.Command {
 		},
 	}
 
-	command.Flags().BoolVar(&fix, "fix", false, "Require an interactive terminal before prompting for unresolved variables")
+	command.Flags().BoolVar(&fix, "fix", false, "Prompt to resolve unresolved variables and write them to .wsx.env")
 	command.Flags().BoolVar(&jsonOutput, "json", false, "Output doctor checks as JSON")
 	return command
 }
@@ -407,10 +414,10 @@ func checkDoctorLinks(root string, refs []doctorResolvedRef) []doctorCheck {
 			continue
 		}
 
-		linkType, err := workspace.DetectLinkType(filepath.Join(root, ref.Ref.Name))
+		linkType, err := validateWorkspaceLinkTarget(root, ref.Ref.Name, ref.ResolvedPath)
 		if err != nil {
 			check.Status = doctorStatusError
-			check.Message = fmt.Sprintf("workspace entry is missing or not a link: %s", filepath.Join(root, ref.Ref.Name))
+			check.Message = err.Error()
 			checks = append(checks, check)
 			continue
 		}
