@@ -54,8 +54,8 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 			"### Repo: `auth-service`",
 			"#### Source: `CLAUDE.md`",
 			"#### Source: `AGENTS.md`",
-			"# Auth Claude",
-			"# Auth Agents",
+			"## Auth Claude",
+			"## Auth Agents",
 			"### Repo: `frontend`",
 		} {
 			if !strings.Contains(content, snippet) {

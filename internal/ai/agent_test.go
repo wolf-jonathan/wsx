@@ -35,14 +35,34 @@ func TestGenerateWorkspaceInstructionsIncludesRepoSpecificInstructionFiles(t *te
 		"#### Source: `CLAUDE.md`",
 		"#### Source: `docs/AGENTS.md`",
 		"This section applies when working in linked repo `auth-service`.",
-		"# Auth Claude",
-		"# Auth Agents",
+		"## Auth Claude",
+		"## Auth Agents",
 		"### Repo: `frontend`",
 		"No repo-specific instruction files were found for this repo.",
 	} {
 		if !strings.Contains(content, snippet) {
 			t.Fatalf("instructions content = %q, want substring %q", content, snippet)
 		}
+	}
+
+	for _, forbidden := range []string{
+		"\n# Auth Claude\n",
+		"\n# Auth Agents\n",
+	} {
+		if strings.Contains(content, forbidden) {
+			t.Fatalf("instructions content = %q, should not contain %q", content, forbidden)
+		}
+	}
+}
+
+func TestNormalizeImportedInstructionMarkdownDemotesHeadersByOneLevel(t *testing.T) {
+	content := "# Top\n## Mid\n### Low\n###### Deep\nnot a header\n#NoSpace\n  # Indented\n"
+
+	got := normalizeImportedInstructionMarkdown(content)
+	want := "## Top\n### Mid\n#### Low\n###### Deep\nnot a header\n#NoSpace\n  ## Indented\n"
+
+	if got != want {
+		t.Fatalf("normalizeImportedInstructionMarkdown() = %q, want %q", got, want)
 	}
 }
 

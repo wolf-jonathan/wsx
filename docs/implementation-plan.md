@@ -854,6 +854,7 @@ into separate owned modules.
   - scans each resolved repo for `CLAUDE.md` and `AGENTS.md`
   - includes imported content in clearly labeled repo-specific sections
   - keeps workspace-wide rules and repo-scoped instructions distinct in the generated output
+  - demotes imported Markdown headers by one level so generated top-level sections remain reserved for workspace, comments, and repo blocks
 - Added black-box tests in:
   - `internal/ai/agent_test.go` for detection summaries, imported instruction rendering, and file writing
   - `cmd/agent_test.go` for end-to-end command output and generated workspace files

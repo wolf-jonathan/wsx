@@ -143,8 +143,9 @@ func RenderWorkspaceInstructions(instructions WorkspaceInstructions) string {
 				builder.WriteString("#### Source: `")
 				builder.WriteString(imported.Path)
 				builder.WriteString("`\n\n")
-				builder.WriteString(imported.Content)
-				if !strings.HasSuffix(imported.Content, "\n") {
+				normalizedContent := normalizeImportedInstructionMarkdown(imported.Content)
+				builder.WriteString(normalizedContent)
+				if !strings.HasSuffix(normalizedContent, "\n") {
 					builder.WriteString("\n")
 				}
 				builder.WriteString("\n")
@@ -248,6 +249,43 @@ func pathBase(path string) string {
 		return path
 	}
 	return parts[len(parts)-1]
+}
+
+func normalizeImportedInstructionMarkdown(content string) string {
+	lines := strings.Split(content, "\n")
+	for index, line := range lines {
+		lines[index] = demoteMarkdownHeader(line)
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func demoteMarkdownHeader(line string) string {
+	if line == "" {
+		return line
+	}
+
+	trimmed := strings.TrimLeft(line, " ")
+	indentWidth := len(line) - len(trimmed)
+	if trimmed == "" || !strings.HasPrefix(trimmed, "#") {
+		return line
+	}
+
+	headerWidth := 0
+	for headerWidth < len(trimmed) && trimmed[headerWidth] == '#' {
+		headerWidth++
+	}
+
+	if headerWidth == 0 || headerWidth >= len(trimmed) || trimmed[headerWidth] != ' ' {
+		return line
+	}
+
+	newHeaderWidth := headerWidth
+	if newHeaderWidth < 6 {
+		newHeaderWidth++
+	}
+
+	return line[:indentWidth] + strings.Repeat("#", newHeaderWidth) + trimmed[headerWidth:]
 }
 
 func WriteWorkspaceInstructionFiles(root string, content string) error {
