@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 func newAddCommand() *cobra.Command {
@@ -230,7 +231,16 @@ func relativeIfWithin(base, target string) (string, bool) {
 }
 
 func normalizePortablePath(path string) string {
-	return filepath.ToSlash(filepath.Clean(path))
+	normalized := strings.ReplaceAll(path, `\`, `/`)
+	return pathpkgClean(normalized)
+}
+
+func pathpkgClean(value string) string {
+	cleaned := path.Clean(value)
+	if cleaned == "." && value != "." && value != "" {
+		return ""
+	}
+	return cleaned
 }
 
 func samePath(left, right string) bool {
