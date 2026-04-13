@@ -1,55 +1,86 @@
 # Workspace X
 
-Workspace X is a Windows-first Go CLI for building AI-friendly multi-repo
-workspaces. The `wsx` command links existing local repositories into one
-workspace directory so tools like Codex, Claude Code, and Copilot can operate
-across them as one coherent codebase without copying or merging anything.
+<p align="center">
+  <strong>wsx</strong>
+</p>
 
-This repo intentionally keeps a small set of root Markdown files:
+<p align="center">
+  <a href="https://go.dev/"><img src="https://img.shields.io/badge/go-1.22+-00ADD8.svg" alt="Go 1.22+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
+  <a href="https://github.com/wolf-jonathan/workspace-x/actions/workflows/ci.yml"><img src="https://github.com/wolf-jonathan/workspace-x/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/wolf-jonathan/logseq-cli/commits/main"><img src="https://img.shields.io/github/last-commit/wolf-jonathan/workspace-x" alt="Last Commit"></a>
+</p>
 
-- `README.md` for public product and usage documentation
-- `SKILL.md` for agent-native `wsx` guidance
-- `AGENTS.md` and `CLAUDE.md` for workspace-aware agent tooling conventions
+<h3 align="center">A CLI for AI-friendly multi-repo workspaces.</h3>
 
-## How it works
+<p align="center"><em>Link existing local repositories into one workspace directory without copying, vendoring, or flattening them.</em></p>
+
+<p align="center">
+Workspace X keeps a portable workspace config in <code>.wsx.json</code>, keeps machine-specific state in <code>.wsx.env</code>, and exposes discovery and automation commands that are usable by humans and AI agents.
+</p>
+
+---
+
+## Why wsx
+
+Most multi-repo workflows force you into one of two bad options:
+
+- copy repositories into a temporary mega-folder
+- teach every tool where each repo lives separately
+
+`wsx` takes a cleaner path: keep each repo where it already lives, then create a
+workspace root that links them together in a stable, portable way.
+
+| Property | What You Get |
+|----------|-------------|
+| Portable workspace config | `.wsx.json` can keep `${VAR}` placeholders instead of machine-specific absolute paths |
+| Local-only machine state | `.wsx.env` holds path variables and should stay uncommitted |
+| Windows-correct linking | Tries symlinks first and falls back to junctions when Windows permissions require it |
+| Agent-friendly commands | Plain text by default, `--json` where structure is useful |
+| Safe multi-repo execution | `status`, `fetch`, and `exec` work across linked repos without shell magic |
+| Cheap discovery first | `tree` and `grep` help agents and humans narrow before opening files |
+
+---
+
+## Workspace Model
 
 A Workspace X workspace contains:
 
 - `.wsx.json` as the committed shared workspace config
 - `.wsx.env` as the local machine-specific path variable file
-- linked repo directories created as symlinks or Windows junctions
+- linked repo directories at the workspace root
 
-That keeps workspace config portable for teammates while the real repositories
-stay in their original locations.
+Core invariants:
 
-## Key invariants
-
-- `.wsx.json` stores portable `${VAR}` placeholders when available and must not be silently rewritten to machine-specific absolute paths
+- `.wsx.json` stores portable `${VAR}` placeholders when available and must not
+  be silently rewritten to machine-specific absolute paths
 - path resolution happens at point of use, not during config load
-- `.wsx.env` is local-only workspace state and must never be committed by generated workspaces
-- Windows link type is runtime state and is detected from disk instead of being persisted in config
-- `wsx exec` forwards argv directly and does not invoke a shell unless the caller explicitly does so
-- AI-oriented commands emit plain text by default and support `--json` where structured output is useful
+- `.wsx.env` is local-only workspace state and must never be committed by
+  generated workspaces
+- `link_type` is runtime state and is detected from disk instead of being
+  persisted in config
+- `wsx exec` forwards argv directly and does not invoke a shell unless the
+  caller explicitly does so
 
-## Install
 
-The simplest cross-platform install path for developers is Go's native global
-install flow:
+---
+
+## Installation
 
 Requirements:
 
 - Go 1.22+
 
-Install the latest tagged version globally:
+### Install the latest tagged version
 
 ```powershell
 go install github.com/wolf-jonathan/workspace-x@latest
 ```
 
-That works on Windows, Linux, and macOS and installs `wsx` into your Go bin
-directory.
+That installs `wsx` into your Go bin directory.
 
-If you want a local binary without modifying your global Go bin:
+### Build from a local checkout
 
 ```powershell
 git clone https://github.com/wolf-jonathan/workspace-x.git
@@ -57,38 +88,15 @@ cd wsx
 go build -o wsx.exe .
 ```
 
-Run directly from the repo without installing:
+### Run without installing
 
 ```powershell
 go run . --help
 ```
 
-## Release distribution
+---
 
-Tagged releases are built automatically for:
-
-- Windows `amd64`, `arm64`
-- Linux `amd64`, `arm64`
-- macOS `amd64`, `arm64`
-
-To publish a release:
-
-```powershell
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-That tag triggers GitHub Actions and GoReleaser, which runs the test suite,
-builds archives for each platform, and uploads them to the GitHub release.
-
-Package managers are not wired yet. The practical rollout order is:
-
-1. `go install github.com/wolf-jonathan/workspace-x@latest`
-2. GitHub Releases with prebuilt binaries
-3. Scoop and Homebrew
-4. `winget` after the release format is stable
-
-## Quick start
+## Quick Start
 
 Create a workspace:
 
@@ -119,94 +127,39 @@ Inspect the workspace:
 wsx doctor
 wsx list
 wsx tree --depth 2
+wsx grep "Auth"
 ```
 
-## Skill install and uninstall
-
-Workspace X ships a first-party top-level [SKILL.md](SKILL.md) for agent-native
-use.
-
-Install it into the current repo scope:
+Run one command across every linked repo:
 
 ```powershell
-wsx skill-install
+wsx exec -- git status --short --branch
 ```
 
-That writes the bundled skill to `.agents/skills/wsx/SKILL.md` under the
-current directory.
+---
 
-Install it globally for the current user:
-
-```powershell
-wsx skill-install --scope global
-```
-
-That writes the bundled skill to `.agents/skills/wsx/SKILL.md` under the
-current user home directory.
-
-Remove an installed skill:
-
-```powershell
-wsx skill-uninstall
-wsx skill-uninstall --scope global
-```
-
-`wsx skill-uninstall` removes only the installed skill directory for that
-selected scope. It never mutates the source [SKILL.md](SKILL.md) in this repo.
-
-## Command reference
+## Command Reference
 
 ### Workspace commands
 
-`wsx init [name]`
-
-- Initializes a workspace in the current directory
-- Creates `.wsx.json`
-- Creates an empty `.wsx.env`
-- Ensures `.wsx.env` is in `.gitignore`
-
-`wsx add <path> [--as <name>]`
-
-- Adds a linked repository to the current workspace
-- Accepts absolute or parameterized paths
-- Derives the workspace link name from the target directory unless `--as` is provided
-
-`wsx remove <name>`
-
-- Removes a linked repository from `.wsx.json`
-- Removes only the workspace link
-- Never mutates the target repository
-
-`wsx list [--json]`
-
-- Lists linked repositories in workspace config order
-- Reports stored path, resolved path, runtime link type, and live status
-
-`wsx doctor [--json] [--fix]`
-
-- Validates workspace health and portability
-- Reports unresolved variables as errors by default
-- `--fix` is the explicit opt-in for interactive variable resolution and requires a TTY
+| Command | What It Does |
+|---------|--------------|
+| `wsx init [name]` | Creates `.wsx.json`, `.wsx.env`, and ensures `.wsx.env` is ignored |
+| `wsx add <path> [--as <name>]` | Adds a linked repository to the workspace |
+| `wsx remove <name>` | Removes a linked repository from config and removes only the workspace link |
+| `wsx list [--json]` | Lists linked repos with stored path, resolved path, runtime link type, and health |
+| `wsx doctor [--json] [--fix]` | Validates workspace health and portability |
 
 ### Git and execution commands
 
-`wsx status [--json]`
+| Command | What It Does |
+|---------|--------------|
+| `wsx status [--json]` | Runs `git status --short --branch` across linked repositories |
+| `wsx fetch [--json] [--parallel]` | Runs `git fetch --prune` across linked repositories |
+| `wsx exec [--json] [--parallel] -- <cmd>` | Runs one argv-forwarded command across linked repositories |
 
-- Runs `git status --short --branch` across linked repositories
-- Exits non-zero when any repository is dirty or unavailable
-
-`wsx fetch [--json] [--parallel]`
-
-- Runs `git fetch --prune` across linked repositories
-- `--parallel` preserves workspace config order in emitted output
-
-`wsx exec [--json] [--parallel] -- <cmd>`
-
-- Runs an argv-forwarded command across linked repositories
-- Does not invoke a shell implicitly
-- Use an explicit shell if you need pipes, redirection, or shell operators
-
-Example:
+`wsx exec` does not invoke a shell implicitly. If you need pipes, redirection, or
+shell operators, call a shell explicitly:
 
 ```powershell
 wsx exec -- git checkout main
@@ -216,46 +169,23 @@ wsx exec -- powershell -Command "git fetch; git status"
 
 ### AI-facing commands
 
-`wsx tree [--all] [--depth N]`
-
-- Shows a clean workspace tree
-- Respects `.gitignore` by default
-- `--all` includes ignored and default-excluded files
-- Defaults to `--depth 2` to keep large workspaces readable; use `--depth 0` for unlimited traversal
-- Emits `...` when a directory is truncated by the active depth limit
-
-`wsx grep <pattern> [--include glob,...] [--exclude glob,...] [--context N] [--json]`
-
-- Searches linked repositories in workspace config order
-- Respects `.gitignore` by default
-- Use this after `wsx tree` to narrow to the exact files you should read
-- Exits non-zero when no matches are found
-
-`wsx prompt [--copy]`
-
-- Generates an AI system prompt for the current workspace
-- Includes repo summaries and a workspace tree
-- `--copy` writes the exact emitted prompt to the clipboard
-
-`wsx agent-init [--purpose text]`
-
-- Generates synchronized workspace instruction files
-- Writes `CLAUDE.md` and `AGENTS.md`
-- Fails if either file already exists in the workspace root
-- Imports only top-level linked-repo `CLAUDE.md` and `AGENTS.md` files
+| Command | What It Does |
+|---------|--------------|
+| `wsx tree [--all] [--depth N]` | Shows a clean workspace tree |
+| `wsx grep <pattern> [--include glob,...] [--exclude glob,...] [--context N] [--json]` | Searches linked repositories in config order |
+| `wsx prompt [--copy]` | Generates an AI system prompt for the current workspace |
+| `wsx agent-init [--purpose text]` | Generates synchronized `CLAUDE.md` and `AGENTS.md` files |
 
 ### Skill commands
 
-`wsx skill-install [--scope local|global]`
+| Command | What It Does |
+|---------|--------------|
+| `wsx skill-install [--scope local\|global]` | Installs the bundled `SKILL.md` |
+| `wsx skill-uninstall [--scope local\|global]` | Removes the installed `wsx` skill |
 
-- Installs the bundled `SKILL.md`
-- `local` is the default scope
+---
 
-`wsx skill-uninstall [--scope local|global]`
-
-- Removes the installed `wsx` skill from the selected scope
-
-## JSON-oriented workflows
+## JSON-Oriented Workflows
 
 Use the JSON flags when another tool or agent needs structured output:
 
@@ -267,6 +197,57 @@ wsx fetch --json --parallel
 wsx exec --json -- go test ./...
 wsx grep --json "TODO"
 ```
+
+---
+
+## Agent Usage
+
+This repo intentionally keeps a small set of root Markdown files:
+
+- `README.md` for public product and usage documentation
+- `SKILL.md` for agent-native `wsx` guidance
+- `AGENTS.md` and `CLAUDE.md` for workspace-aware agent tooling conventions
+
+Install the bundled skill into the current repo scope:
+
+```powershell
+wsx skill-install
+```
+
+Install it globally for the current user:
+
+```powershell
+wsx skill-install --scope global
+```
+
+Remove an installed skill:
+
+```powershell
+wsx skill-uninstall
+wsx skill-uninstall --scope global
+```
+
+---
+
+## Release Distribution
+
+Tagged releases are configured to build for:
+
+- Windows `amd64`, `arm64`
+- Linux `amd64`, `arm64`
+- macOS `amd64`, `arm64`
+
+To publish a release:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That tag triggers GitHub Actions and GoReleaser, which runs the test suite,
+builds archives for each platform, and uploads them to the GitHub release.
+
+---
 
 ## Development
 
@@ -288,8 +269,26 @@ go test ./internal/git
 Use `go run . --help` or `go run . <command> --help` to confirm the current CLI
 surface before updating docs.
 
-## Repository notes
+---
 
-- `LICENSE` defines the public usage terms for this repo.
-- `CONTRIBUTING.md` covers local setup and contribution expectations.
-- GitHub Actions runs `go test ./...` on pushes to `main` and on pull requests.
+## Project Layout
+
+```text
+wsx/
+├── main.go
+├── cmd/
+├── internal/
+│   ├── ai/
+│   ├── git/
+│   └── workspace/
+├── README.md
+├── SKILL.md
+├── AGENTS.md
+└── CLAUDE.md
+```
+
+---
+
+## License
+
+MIT
