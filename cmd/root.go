@@ -15,6 +15,7 @@ func NewRootCommand() *cobra.Command {
 Currently supported commands:
   add     Add a linked repository to the current workspace
   agent-init Generate workspace AI instruction files
+  dump    Dump selected file contents across linked repositories
   exec    Run a command across linked repositories
   fetch   Run git fetch across linked repositories
   grep    Search for a pattern across linked repositories
@@ -32,6 +33,7 @@ Only implemented commands are shown below.`,
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.AddCommand(newAddCommand())
 	root.AddCommand(newAgentCommand())
+	root.AddCommand(newDumpCommand())
 	root.AddCommand(newExecCommand())
 	root.AddCommand(newFetchCommand())
 	root.AddCommand(newGrepCommand())

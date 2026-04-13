@@ -824,10 +824,10 @@ This phase is expanded because Windows support is a first-class requirement from
 - [x] Add `github.com/sabhiram/go-gitignore` dependency
 - [x] Implement `internal/ai/ignore.go` - gitignore chain loader (global + repo + nested)
 - [x] Implement `wsx tree` - respects gitignore by default, `--all` to bypass
-- [ ] Implement `wsx grep` - cross-repo search with `--include`, `--exclude`, `--context`, `--json`
-- [ ] Implement `wsx dump` - mandatory filter, gitignore support, all flags
+- [x] Implement `wsx grep` - cross-repo search with `--include`, `--exclude`, `--context`, `--json`
+- [x] Implement `wsx dump` - mandatory filter, gitignore support, all flags
 - [ ] Implement `wsx prompt`
-- [ ] Implement `wsx agent-init`
+- [x] Implement `wsx agent-init`
 - [ ] Implement `wsx skill-install` to install the bundled top-level `SKILL.md` locally or globally
 - [ ] Implement `wsx skill-uninstall` to remove the installed skill from local or global scope
 

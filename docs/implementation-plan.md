@@ -744,6 +744,40 @@ into separate owned modules.
 
 - ignore handling
 
+**Progress update (2026-04-13):**
+
+- Added `internal/ai/dump.go` with the initial dump seam:
+  - `DumpRepo`
+  - `DumpOptions`
+  - `DumpFile`
+  - `DumpResult`
+  - `DumpWorkspace(...)`
+  - `RenderDumpMarkdown(...)`
+  - `ValidateDumpScope(...)`
+- Added `cmd/dump.go` and wired `dump` into the root Cobra command and help text.
+- Implemented targeted workspace extraction behavior for AI-facing use:
+  - requires one narrowing scope by default via `--include`, `--path`, or `--repo`
+  - supports `--all-files` as the explicit override
+  - respects the shared ignore matcher by default
+  - supports `--no-ignore` while still enforcing built-in noise excludes like `.git/`
+  - supports `--exclude`, `--dry-run`, `--format json`, and `--max-tokens`
+  - preserves workspace config order for repos and sorted relative paths within each repo
+- Added black-box tests in:
+  - `internal/ai/dump_test.go` for filtering, ignore handling, dry-run behavior, markdown rendering, and token-budget truncation
+  - `cmd/dump_test.go` for scope enforcement, markdown output, JSON output, repo narrowing, `--no-ignore`, and `--max-tokens`
+
+**Frozen contracts after this slice:**
+
+- `wsx dump` must refuse to run without `--include`, `--path`, `--repo`, or `--all-files`.
+- `wsx dump` respects `.gitignore` by default and `--no-ignore` disables only repository ignore rules, not the built-in noise excludes.
+- `wsx dump --format json` emits one object per matched file with `repo`, `file`, and `content` omitted during `--dry-run`.
+- `wsx dump --max-tokens` truncates the emitted file list once the estimated token budget is exceeded and surfaces a warning in markdown output.
+
+**Verification status:**
+
+- `go test ./internal/ai -run Dump`
+- `go test ./cmd -run Dump`
+
 ### Task C5 - `prompt`
 
 **Owner:** Agent 16

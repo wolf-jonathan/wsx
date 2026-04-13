@@ -25,6 +25,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 		"Currently supported commands:",
 		"add",
 		"agent-init",
+		"dump",
 		"exec",
 		"fetch",
 		"grep",
