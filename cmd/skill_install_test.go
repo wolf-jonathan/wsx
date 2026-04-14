@@ -60,6 +60,14 @@ func TestSkillInstallGlobalUsesHomeScope(t *testing.T) {
 	if _, err := os.Stat(installedPath); err != nil {
 		t.Fatalf("Stat(%q) error = %v", installedPath, err)
 	}
+
+	claudeInstalledPath := filepath.Join(homeDir, ".claude", "skills", "wsx", "SKILL.md")
+	if _, err := os.Stat(claudeInstalledPath); err != nil {
+		t.Fatalf("Stat(%q) error = %v", claudeInstalledPath, err)
+	}
+	if !strings.Contains(stdout.String(), filepath.Join(homeDir, ".claude", "skills", "wsx")) {
+		t.Fatalf("stdout = %q, want Claude skill directory", stdout.String())
+	}
 }
 
 func TestSkillUninstallRemovesInstalledSkill(t *testing.T) {

@@ -303,6 +303,9 @@ Guidance:
 
 - `local` is the default scope
 - Prefer local scope unless the user explicitly wants global installation
+- `global` installs the canonical skill in `~/.agents/skills/wsx`
+- `global` also creates a Claude-visible link in `~/.claude/skills/wsx`
+- On Windows, the Claude link uses a symlink when available and falls back to a junction on permission errors
 
 ### `wsx skill-uninstall [--scope local|global]`
 
@@ -311,6 +314,7 @@ Removes the bundled `wsx` skill from the selected scope.
 Use it when:
 
 - Cleaning up an installed `wsx` skill
+- `global` removes both the canonical install and the Claude mirror link
 
 ## JSON-Oriented Workflows
 

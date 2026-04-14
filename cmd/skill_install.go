@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/spf13/cobra"
+	"github.com/wolf-jonathan/workspace-x/internal/ai"
 )
 
 func newSkillInstallCommand() *cobra.Command {
@@ -26,11 +26,17 @@ func newSkillInstallCommand() *cobra.Command {
 				return err
 			}
 
-			_, err = fmt.Fprintf(cmd.OutOrStdout(), "Installed wsx skill to %s\n", result.Directory)
-			return err
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Installed wsx skill to %s\n", result.Directory); err != nil {
+				return err
+			}
+			if result.ClaudeDirectory != "" {
+				_, err := fmt.Fprintf(cmd.OutOrStdout(), "Linked Claude skill to %s (%s)\n", result.ClaudeDirectory, result.ClaudeLinkType)
+				return err
+			}
+			return nil
 		},
 	}
 
-	command.Flags().StringVar(&scope, "scope", ai.SkillScopeLocal, "Install scope: local or global")
+	command.Flags().StringVar(&scope, "scope", ai.SkillScopeLocal, "Install scope: local or global (global also links into ~/.claude/skills)")
 	return command
 }

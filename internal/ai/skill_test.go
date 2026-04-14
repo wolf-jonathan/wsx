@@ -53,6 +53,23 @@ func TestInstallBundledSkillGlobalUsesHomeSkillDirectory(t *testing.T) {
 	if result.Directory != wantDir {
 		t.Fatalf("result.Directory = %q, want %q", result.Directory, wantDir)
 	}
+
+	wantClaudeDir := filepath.Join(homeDir, ".claude", "skills", SkillName)
+	if result.ClaudeDirectory != wantClaudeDir {
+		t.Fatalf("result.ClaudeDirectory = %q, want %q", result.ClaudeDirectory, wantClaudeDir)
+	}
+
+	data, err := os.ReadFile(filepath.Join(result.ClaudeDirectory, "SKILL.md"))
+	if err != nil {
+		t.Fatalf("ReadFile(Claude SKILL.md) error = %v", err)
+	}
+	if string(data) != "# global skill\n" {
+		t.Fatalf("Claude-installed skill = %q, want bundled content", string(data))
+	}
+
+	if result.ClaudeLinkType == "" {
+		t.Fatal("result.ClaudeLinkType = empty, want symlink or junction")
+	}
 }
 
 func TestInstallBundledSkillRejectsExistingInstall(t *testing.T) {
@@ -82,6 +99,35 @@ func TestUninstallBundledSkillRemovesInstalledDirectory(t *testing.T) {
 		t.Fatalf("UninstallBundledSkill() error = %v", err)
 	}
 
+	if _, err := os.Stat(result.Directory); !os.IsNotExist(err) {
+		t.Fatalf("skill directory still exists after uninstall: stat err = %v", err)
+	}
+}
+
+func TestUninstallBundledSkillGlobalRemovesClaudeMirror(t *testing.T) {
+	repoRoot := t.TempDir()
+	homeDir := t.TempDir()
+	restoreHome := swapSkillHomeDir(func() (string, error) {
+		return homeDir, nil
+	})
+	defer restoreHome()
+	restoreReader := swapBundledSkillReader(func(string) ([]byte, error) {
+		return []byte("# global skill\n"), nil
+	})
+	defer restoreReader()
+
+	if _, err := InstallBundledSkill(repoRoot, SkillScopeGlobal); err != nil {
+		t.Fatalf("InstallBundledSkill() error = %v", err)
+	}
+
+	result, err := UninstallBundledSkill(repoRoot, SkillScopeGlobal)
+	if err != nil {
+		t.Fatalf("UninstallBundledSkill() error = %v", err)
+	}
+
+	if _, err := os.Lstat(result.ClaudeDirectory); !os.IsNotExist(err) {
+		t.Fatalf("Claude skill path still exists after uninstall: lstat err = %v", err)
+	}
 	if _, err := os.Stat(result.Directory); !os.IsNotExist(err) {
 		t.Fatalf("skill directory still exists after uninstall: stat err = %v", err)
 	}

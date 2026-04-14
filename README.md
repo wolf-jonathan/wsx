@@ -210,8 +210,8 @@ wsx exec -- powershell -Command "git fetch; git status"
 
 | Command | What It Does |
 |---------|--------------|
-| `wsx skill-install [--scope local\|global]` | Installs the bundled `SKILL.md` |
-| `wsx skill-uninstall [--scope local\|global]` | Removes the installed `wsx` skill |
+| `wsx skill-install [--scope local\|global]` | Installs the bundled `SKILL.md`; global scope also links it into `~/.claude/skills` |
+| `wsx skill-uninstall [--scope local\|global]` | Removes the installed `wsx` skill; global scope also removes the Claude mirror link |
 
 ---
 
@@ -249,6 +249,11 @@ Install it globally for the current user:
 ```powershell
 wsx skill-install --scope global
 ```
+
+Global scope installs the canonical skill under `~/.agents/skills/wsx` and also
+creates a Claude-visible link at `~/.claude/skills/wsx`. On Windows, that link
+uses a symlink when available and falls back to a junction on permission
+errors.
 
 Remove an installed skill:
 

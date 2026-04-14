@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/spf13/cobra"
+	"github.com/wolf-jonathan/workspace-x/internal/ai"
 )
 
 func newSkillUninstallCommand() *cobra.Command {
@@ -26,11 +26,17 @@ func newSkillUninstallCommand() *cobra.Command {
 				return err
 			}
 
-			_, err = fmt.Fprintf(cmd.OutOrStdout(), "Removed wsx skill from %s\n", result.Directory)
-			return err
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Removed wsx skill from %s\n", result.Directory); err != nil {
+				return err
+			}
+			if result.ClaudeDirectory != "" {
+				_, err := fmt.Fprintf(cmd.OutOrStdout(), "Removed Claude skill link from %s\n", result.ClaudeDirectory)
+				return err
+			}
+			return nil
 		},
 	}
 
-	command.Flags().StringVar(&scope, "scope", ai.SkillScopeLocal, "Install scope: local or global")
+	command.Flags().StringVar(&scope, "scope", ai.SkillScopeLocal, "Install scope: local or global (global also removes ~/.claude/skills link)")
 	return command
 }
