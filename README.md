@@ -31,6 +31,10 @@
 Workspace X helps you spin up focused AI workspaces without moving code around or manually re-explaining your repo layout every time.
 </p>
 
+<p align="center">
+Built in Go, so the CLI stays small, portable, and fast.
+</p>
+
 ---
 
 ## Why wsx
