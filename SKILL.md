@@ -1,13 +1,27 @@
 ---
 name: wsx
-description: Windows-first AI workspace manager for linked local repositories. Use when operating inside a wsx workspace or when a user needs structured inspection, health checks, multi-repo execution, or agent instruction setup across linked repos. Prefer tree for discovery, grep for narrowing, and exact-file reads instead of broad content extraction.
+description: Windows-first AI workspace manager for linked local repositories. Use only when the user explicitly asks to create or manage a wsx workspace, or when you have confirmed the current folder is already a wsx workspace and need wsx-specific inspection, health checks, multi-repo execution, or agent instruction setup. Prefer tree for discovery, grep for narrowing, and exact-file reads instead of broad content extraction.
 ---
 
 # Workspace X (wsx)
 
-Use Workspace X through the `wsx` command when you need to inspect or operate
-on a multi-repo workspace built from links to existing local repositories. This
-tool is Windows-first and is designed for AI agents as well as humans.
+Use Workspace X through the `wsx` command only for a confirmed Workspace X
+workspace built from links to existing local repositories, or when the user
+explicitly asks you to create one. Do not invoke `wsx` for ordinary repository
+work outside a confirmed `wsx` workspace. This tool is Windows-first and is
+designed for AI agents as well as humans.
+
+## When To Use
+
+Use `wsx` only when one of these is true:
+
+- The user explicitly asks to create or manage a Workspace X workspace
+- You have confirmed the current directory is already a `wsx` workspace by the
+  presence of `.wsx.json` and `.wsx.env`
+
+Only after that confirmation should you use the other `wsx` features such as
+health checks, multi-repo execution, tree discovery, or agent instruction
+setup.
 
 ## Core Model
 
@@ -43,7 +57,8 @@ Treat these as product invariants:
 
 ## Token Discipline
 
-This section is the main policy for AI use. Follow it strictly.
+This section applies only after `wsx` is confirmed to be the right tool. Follow
+it strictly.
 
 ### Preferred inspection order
 
