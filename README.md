@@ -20,7 +20,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
   <a href="https://github.com/wolf-jonathan/workspace-x/actions/workflows/ci.yml"><img src="https://github.com/wolf-jonathan/workspace-x/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <!-- <a href="https://github.com/wolf-jonathan/workspace-x/commits/main"><img src="https://img.shields.io/github/last-commit/wolf-jonathan/workspace-x" alt="Last Commit"></a> -->
+  <a href="https://github.com/wolf-jonathan/workspace-x/commits/main"><img src="https://img.shields.io/github/last-commit/wolf-jonathan/workspace-x" alt="Last Commit"></a>
 </p>
 
 <h3 align="center">A simple way to give AI one clean workspace across all your repos.</h3>
