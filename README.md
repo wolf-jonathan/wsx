@@ -79,19 +79,33 @@ Core invariants:
 
 ## Installation
 
+End users can install `wsx` from GitHub Releases without installing Go.
+
+Download the latest release for your platform from the GitHub Releases page:
+
+- Windows: download the `.zip`, extract `wsx.exe`, and place it on your `PATH`
+- Linux: download the `.tar.gz`, extract `wsx`, and move it to a directory on your `PATH` such as `/usr/local/bin`
+- macOS: download the `.tar.gz`, extract `wsx`, and move it to a directory on your `PATH` such as `/usr/local/bin`
+
+Release assets are published for:
+
+- Windows `amd64`, `arm64`
+- Linux `amd64`, `arm64`
+- macOS `amd64`, `arm64`
+
+### Build from source
+
 Requirements:
 
 - Go 1.22+
 
-### Install the latest tagged version
+Install the latest tagged version with Go:
 
 ```powershell
 go install github.com/wolf-jonathan/workspace-x@latest
 ```
 
-That installs `wsx` into your Go bin directory.
-
-### Build from a local checkout
+Build from a local checkout:
 
 ```powershell
 git clone https://github.com/wolf-jonathan/workspace-x.git
@@ -99,7 +113,7 @@ cd wsx
 go build -o wsx.exe .
 ```
 
-### Run without installing
+Run without installing:
 
 ```powershell
 go run . --help
@@ -257,6 +271,8 @@ git push origin v0.1.0
 
 That tag triggers GitHub Actions and GoReleaser, which runs the test suite,
 builds archives for each platform, and uploads them to the GitHub release.
+See [RELEASING.md](RELEASING.md) for the full maintainer release process and
+versioning policy.
 
 ---
 
