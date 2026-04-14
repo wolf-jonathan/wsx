@@ -37,7 +37,7 @@ Built in Go, so the CLI stays small, portable, and fast.
 
 ---
 
-## Why wsx
+## Why `wsx`
 
 If you use AI to help you code, the setup friction gets old fast.
 
