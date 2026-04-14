@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
@@ -13,7 +14,8 @@ func newAgentCommand() *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "agent-init",
-		Short: "Generate workspace AI instruction files",
+		Short: "Generate or refresh workspace AI instruction files",
+		Long:  "Generate synchronized workspace AI instruction files. Existing CLAUDE.md and AGENTS.md files are overwritten with a warning.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			loaded, err := workspace.LoadConfig("")
@@ -45,8 +47,20 @@ func newAgentCommand() *cobra.Command {
 			}
 
 			content := ai.RenderWorkspaceInstructions(instructions)
-			if err := ai.WriteWorkspaceInstructionFiles(loaded.Root, content); err != nil {
+			overwritten, err := ai.WriteWorkspaceInstructionFiles(loaded.Root, content)
+			if err != nil {
 				return err
+			}
+
+			if len(overwritten) > 0 {
+				_, warnErr := fmt.Fprintf(
+					cmd.ErrOrStderr(),
+					"Warning: overwrote existing %s\n",
+					strings.Join(overwritten, ", "),
+				)
+				if warnErr != nil {
+					return warnErr
+				}
 			}
 
 			_, err = fmt.Fprintf(

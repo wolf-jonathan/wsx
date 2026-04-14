@@ -73,8 +73,12 @@ func TestWriteWorkspaceInstructionFilesWritesAllTargets(t *testing.T) {
 	root := t.TempDir()
 	content := "# Workspace Instructions\n"
 
-	if err := WriteWorkspaceInstructionFiles(root, content); err != nil {
+	overwritten, err := WriteWorkspaceInstructionFiles(root, content)
+	if err != nil {
 		t.Fatalf("WriteWorkspaceInstructionFiles() error = %v", err)
+	}
+	if len(overwritten) != 0 {
+		t.Fatalf("WriteWorkspaceInstructionFiles() overwritten = %v, want none", overwritten)
 	}
 
 	for _, relativePath := range []string{
@@ -91,23 +95,30 @@ func TestWriteWorkspaceInstructionFilesWritesAllTargets(t *testing.T) {
 	}
 }
 
-func TestWriteWorkspaceInstructionFilesFailsWhenTargetAlreadyExists(t *testing.T) {
+func TestWriteWorkspaceInstructionFilesOverwritesExistingTargets(t *testing.T) {
 	root := t.TempDir()
 	content := "# Workspace Instructions\n"
 
 	writeAgentTestFile(t, filepath.Join(root, WorkspaceClaudeFilePath), "user content\n")
+	writeAgentTestFile(t, filepath.Join(root, WorkspaceAgentsFilePath), "user agents content\n")
 
-	err := WriteWorkspaceInstructionFiles(root, content)
-	if err == nil {
-		t.Fatal("WriteWorkspaceInstructionFiles() error = nil, want existing file error")
+	overwritten, err := WriteWorkspaceInstructionFiles(root, content)
+	if err != nil {
+		t.Fatalf("WriteWorkspaceInstructionFiles() error = %v", err)
 	}
 
-	if !strings.Contains(err.Error(), WorkspaceClaudeFilePath) {
-		t.Fatalf("error = %q, want mention of %q", err.Error(), WorkspaceClaudeFilePath)
+	if got := strings.Join(overwritten, ", "); got != "CLAUDE.md, AGENTS.md" {
+		t.Fatalf("WriteWorkspaceInstructionFiles() overwritten = %q, want %q", got, "CLAUDE.md, AGENTS.md")
 	}
 
-	if _, statErr := os.Stat(filepath.Join(root, WorkspaceAgentsFilePath)); !os.IsNotExist(statErr) {
-		t.Fatalf("%s should not be created when preflight fails, stat error = %v", WorkspaceAgentsFilePath, statErr)
+	for _, relativePath := range []string{WorkspaceClaudeFilePath, WorkspaceAgentsFilePath} {
+		data, readErr := os.ReadFile(filepath.Join(root, filepath.FromSlash(relativePath)))
+		if readErr != nil {
+			t.Fatalf("ReadFile(%q) error = %v", relativePath, readErr)
+		}
+		if string(data) != content {
+			t.Fatalf("%s = %q, want %q", relativePath, string(data), content)
+		}
 	}
 }
 

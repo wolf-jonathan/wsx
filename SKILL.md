@@ -303,7 +303,8 @@ Use it when:
 
 Expectations:
 
-- Fails if either target file already exists at the workspace root
+- Overwrites either target file if it already exists at the workspace root
+- Emits a warning when existing files are replaced
 - Imports only top-level linked-repo `CLAUDE.md` and `AGENTS.md` files
 
 ### `wsx skill-install [--scope local|global]`

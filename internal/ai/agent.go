@@ -245,30 +245,31 @@ func demoteMarkdownHeader(line string) string {
 	return line[:indentWidth] + strings.Repeat("#", newHeaderWidth) + trimmed[headerWidth:]
 }
 
-func WriteWorkspaceInstructionFiles(root string, content string) error {
+func WriteWorkspaceInstructionFiles(root string, content string) ([]string, error) {
 	files := []string{
 		WorkspaceClaudeFilePath,
 		WorkspaceAgentsFilePath,
 	}
 
+	overwritten := make([]string, 0, len(files))
 	for _, relativePath := range files {
 		targetPath := filepath.Join(root, filepath.FromSlash(relativePath))
 		if _, err := os.Stat(targetPath); err == nil {
-			return fmt.Errorf("%s already exists", relativePath)
+			overwritten = append(overwritten, relativePath)
 		} else if !os.IsNotExist(err) {
-			return fmt.Errorf("stat %s: %w", relativePath, err)
+			return overwritten, fmt.Errorf("stat %s: %w", relativePath, err)
 		}
 	}
 
 	for _, relativePath := range files {
 		targetPath := filepath.Join(root, filepath.FromSlash(relativePath))
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
-			return fmt.Errorf("create %s: %w", filepath.Dir(targetPath), err)
+			return overwritten, fmt.Errorf("create %s: %w", filepath.Dir(targetPath), err)
 		}
 		if err := os.WriteFile(targetPath, []byte(content), 0o644); err != nil {
-			return fmt.Errorf("write %s: %w", relativePath, err)
+			return overwritten, fmt.Errorf("write %s: %w", relativePath, err)
 		}
 	}
 
-	return nil
+	return overwritten, nil
 }

@@ -31,10 +31,11 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 	writeAgentEnvFile(t, root, reposRoot)
 
 	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
 	command := cmd.NewRootCommand()
 	command.SetArgs([]string{"agent-init", "--purpose", "Debug payment incidents"})
 	command.SetOut(stdout)
-	command.SetErr(new(bytes.Buffer))
+	command.SetErr(stderr)
 
 	if err := cmd.ExecuteCommand(command); err != nil {
 		t.Fatalf("ExecuteCommand() error = %v", err)
@@ -70,9 +71,13 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 			t.Fatalf("command output = %q, want substring %q", output, snippet)
 		}
 	}
+
+	if stderr.Len() != 0 {
+		t.Fatalf("command stderr = %q, want empty", stderr.String())
+	}
 }
 
-func TestAgentInitFailsWhenWorkspaceInstructionFileAlreadyExists(t *testing.T) {
+func TestAgentInitOverwritesExistingWorkspaceInstructionFiles(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
 	writeAgentWorkspaceConfig(t, root, workspace.Config{
@@ -87,23 +92,34 @@ func TestAgentInitFailsWhenWorkspaceInstructionFileAlreadyExists(t *testing.T) {
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
 	writeAgentEnvFile(t, root, reposRoot)
 	writeAgentCmdFile(t, filepath.Join(root, "CLAUDE.md"), "user-owned\n")
+	writeAgentCmdFile(t, filepath.Join(root, "AGENTS.md"), "user-owned-agents\n")
 
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
 	command := cmd.NewRootCommand()
 	command.SetArgs([]string{"agent-init"})
-	command.SetOut(new(bytes.Buffer))
-	command.SetErr(new(bytes.Buffer))
+	command.SetOut(stdout)
+	command.SetErr(stderr)
 
 	err := cmd.ExecuteCommand(command)
-	if err == nil {
-		t.Fatal("ExecuteCommand() error = nil, want existing file error")
+	if err != nil {
+		t.Fatalf("ExecuteCommand() error = %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "CLAUDE.md already exists") {
-		t.Fatalf("error = %q, want existing file message", err.Error())
+	for _, relativePath := range []string{"CLAUDE.md", "AGENTS.md"} {
+		path := filepath.Join(root, relativePath)
+		data, readErr := os.ReadFile(path)
+		if readErr != nil {
+			t.Fatalf("ReadFile(%q) error = %v", relativePath, readErr)
+		}
+		content := string(data)
+		if !strings.Contains(content, "# Workspace Instructions") {
+			t.Fatalf("%s content = %q, want generated workspace instructions", relativePath, content)
+		}
 	}
 
-	if _, statErr := os.Stat(filepath.Join(root, "AGENTS.md")); !os.IsNotExist(statErr) {
-		t.Fatalf("AGENTS.md should not be created when agent-init fails, stat error = %v", statErr)
+	if !strings.Contains(stderr.String(), "Warning: overwrote existing CLAUDE.md, AGENTS.md") {
+		t.Fatalf("stderr = %q, want overwrite warning", stderr.String())
 	}
 }
 

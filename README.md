@@ -208,7 +208,7 @@ wsx exec -- powershell -Command "git fetch; git status"
 | `wsx tree [--all] [--depth N]` | Shows a clean workspace tree |
 | `wsx grep <pattern> [--include glob,...] [--exclude glob,...] [--context N] [--json]` | Searches linked repositories in config order |
 | `wsx prompt [--copy]` | Generates an AI system prompt for the current workspace |
-| `wsx agent-init [--purpose text]` | Generates synchronized `CLAUDE.md` and `AGENTS.md` files |
+| `wsx agent-init [--purpose text]` | Generates synchronized `CLAUDE.md` and `AGENTS.md` files in the wsx workspace, overwriting existing ones with a warning |
 
 ### Skill commands
 
