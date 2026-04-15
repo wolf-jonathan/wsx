@@ -72,15 +72,82 @@ func TestInstallBundledSkillGlobalUsesHomeSkillDirectory(t *testing.T) {
 	}
 }
 
-func TestInstallBundledSkillRejectsExistingInstall(t *testing.T) {
+func TestInstallBundledSkillReplacesExistingInstall(t *testing.T) {
 	repoRoot := t.TempDir()
 	installDir := filepath.Join(repoRoot, ".agents", "skills", SkillName)
 	if err := os.MkdirAll(installDir, 0o755); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
 	}
+	if err := os.WriteFile(filepath.Join(installDir, "SKILL.md"), []byte("# old skill\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
 
-	if _, err := InstallBundledSkill(repoRoot, SkillScopeLocal); err == nil {
-		t.Fatal("InstallBundledSkill() error = nil, want duplicate install error")
+	restoreReader := swapBundledSkillReader(func(string) ([]byte, error) {
+		return []byte("# new skill\n"), nil
+	})
+	defer restoreReader()
+
+	result, err := InstallBundledSkill(repoRoot, SkillScopeLocal)
+	if err != nil {
+		t.Fatalf("InstallBundledSkill() error = %v", err)
+	}
+
+	data, err := os.ReadFile(result.SkillFile)
+	if err != nil {
+		t.Fatalf("ReadFile(%q) error = %v", result.SkillFile, err)
+	}
+	if string(data) != "# new skill\n" {
+		t.Fatalf("installed skill = %q, want replaced content", string(data))
+	}
+}
+
+func TestInstallBundledSkillGlobalReplacesExistingInstall(t *testing.T) {
+	repoRoot := t.TempDir()
+	homeDir := t.TempDir()
+	restoreHome := swapSkillHomeDir(func() (string, error) {
+		return homeDir, nil
+	})
+	defer restoreHome()
+	restoreReader := swapBundledSkillReader(func(string) ([]byte, error) {
+		return []byte("# replacement skill\n"), nil
+	})
+	defer restoreReader()
+
+	installDir := filepath.Join(homeDir, ".agents", "skills", SkillName)
+	if err := os.MkdirAll(installDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(installDir, "SKILL.md"), []byte("# old global skill\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	claudeDir := filepath.Join(homeDir, ".claude", "skills", SkillName)
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(claudeDir, "SKILL.md"), []byte("# old claude skill\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	result, err := InstallBundledSkill(repoRoot, SkillScopeGlobal)
+	if err != nil {
+		t.Fatalf("InstallBundledSkill() error = %v", err)
+	}
+
+	data, err := os.ReadFile(result.SkillFile)
+	if err != nil {
+		t.Fatalf("ReadFile(%q) error = %v", result.SkillFile, err)
+	}
+	if string(data) != "# replacement skill\n" {
+		t.Fatalf("installed skill = %q, want replaced content", string(data))
+	}
+
+	claudeData, err := os.ReadFile(filepath.Join(result.ClaudeDirectory, "SKILL.md"))
+	if err != nil {
+		t.Fatalf("ReadFile(Claude SKILL.md) error = %v", err)
+	}
+	if string(claudeData) != "# replacement skill\n" {
+		t.Fatalf("Claude-installed skill = %q, want replaced content", string(claudeData))
 	}
 }
 

@@ -90,9 +90,7 @@ func InstallBundledSkill(repoRoot, scope string) (SkillInstallResult, error) {
 		return SkillInstallResult{}, err
 	}
 
-	if _, err := os.Stat(location.Directory); err == nil {
-		return SkillInstallResult{}, fmt.Errorf("skill already installed at %s", location.Directory)
-	} else if !errors.Is(err, os.ErrNotExist) {
+	if err := removeExistingSkillInstall(location); err != nil {
 		return SkillInstallResult{}, err
 	}
 
@@ -119,6 +117,32 @@ func InstallBundledSkill(repoRoot, scope string) (SkillInstallResult, error) {
 	}
 
 	return location, nil
+}
+
+func removeExistingSkillInstall(location SkillInstallResult) error {
+	if location.ClaudeDirectory != "" {
+		if err := removeExistingClaudeSkillInstall(location.ClaudeDirectory); err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(location.Directory); err == nil {
+		return os.RemoveAll(location.Directory)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	return nil
+}
+
+func removeExistingClaudeSkillInstall(claudeDirectory string) error {
+	if _, err := os.Lstat(claudeDirectory); err == nil {
+		return os.RemoveAll(claudeDirectory)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	return nil
 }
 
 func UninstallBundledSkill(repoRoot, scope string) (SkillInstallResult, error) {

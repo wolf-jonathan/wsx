@@ -13,7 +13,7 @@ func newSkillInstallCommand() *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "skill-install",
-		Short: "Install the bundled wsx SKILL.md",
+		Short: "Install or refresh the bundled wsx SKILL.md",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cwd, err := os.Getwd()

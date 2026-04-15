@@ -70,6 +70,38 @@ func TestSkillInstallGlobalUsesHomeScope(t *testing.T) {
 	}
 }
 
+func TestSkillInstallOverridesExistingInstall(t *testing.T) {
+	root := t.TempDir()
+	chdirForSkillCommandTest(t, root)
+	installDir := filepath.Join(root, ".agents", "skills", "wsx")
+	if err := os.MkdirAll(installDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(installDir, "SKILL.md"), []byte("# old install\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "SKILL.md"), []byte("# bundled replacement\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile(SKILL.md) error = %v", err)
+	}
+
+	command := NewRootCommand()
+	command.SetArgs([]string{"skill-install"})
+	command.SetOut(new(bytes.Buffer))
+	command.SetErr(new(bytes.Buffer))
+
+	if err := ExecuteCommand(command); err != nil {
+		t.Fatalf("ExecuteCommand() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(installDir, "SKILL.md"))
+	if err != nil {
+		t.Fatalf("ReadFile(SKILL.md) error = %v", err)
+	}
+	if string(data) != "# bundled replacement\n" {
+		t.Fatalf("installed skill = %q, want replacement content", string(data))
+	}
+}
+
 func TestSkillUninstallRemovesInstalledSkill(t *testing.T) {
 	root := t.TempDir()
 	chdirForSkillCommandTest(t, root)
