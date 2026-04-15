@@ -1,14 +1,11 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -23,17 +20,6 @@ const (
 	doctorStatusWarn  = "warn"
 	doctorStatusError = "error"
 )
-
-var doctorIsTerminal = func() bool {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-
-	return info.Mode()&os.ModeCharDevice != 0
-}
-
-var doctorVariablePattern = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)\}`)
 
 type doctorCheck struct {
 	Name    string `json:"name"`
@@ -62,27 +48,15 @@ func (e *doctorCommandError) Error() string {
 
 func newDoctorCommand() *cobra.Command {
 	var jsonOutput bool
-	var fix bool
 
 	command := &cobra.Command{
 		Use:   "doctor",
-		Short: "Validate workspace health and portability",
+		Short: "Validate workspace health",
 		Args:  cobra.NoArgs,
 		Example: `wsx doctor
-wsx doctor --fix`,
+wsx doctor --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			isTerminal := doctorIsTerminal()
-			if fix && !isTerminal {
-				return errors.New("--fix requires an interactive terminal")
-			}
-
-			interactive := fix && isTerminal
-			progressOutput := cmd.OutOrStdout()
-			if jsonOutput {
-				progressOutput = cmd.ErrOrStderr()
-			}
-
-			report, err := runDoctor(cmd.InOrStdin(), progressOutput, interactive)
+			report, err := runDoctor()
 			if err != nil {
 				return err
 			}
@@ -105,18 +79,12 @@ wsx doctor --fix`,
 		},
 	}
 
-	command.Flags().BoolVar(&fix, "fix", false, "Prompt to resolve unresolved variables and write them to .wsx.env")
 	command.Flags().BoolVar(&jsonOutput, "json", false, "Output doctor checks as JSON")
 	return command
 }
 
-func runDoctor(input io.Reader, output io.Writer, interactive bool) (doctorReport, error) {
+func runDoctor() (doctorReport, error) {
 	loaded, err := workspace.LoadConfig("")
-	if err != nil {
-		return doctorReport{}, err
-	}
-
-	env, envExists, err := loadDoctorEnv(loaded.Root)
 	if err != nil {
 		return doctorReport{}, err
 	}
@@ -127,26 +95,8 @@ func runDoctor(input io.Reader, output io.Writer, interactive bool) (doctorRepor
 		Message: fmt.Sprintf("%s found and valid", workspace.ConfigFileName),
 	}}
 
-	envSaved := false
-	varNames := collectDoctorVariables(loaded.Config.Refs)
-	if len(varNames) > 0 {
-		if err := resolveDoctorVariables(loaded.Root, input, output, env, varNames, interactive, &checks, &envSaved); err != nil {
-			return doctorReport{}, err
-		}
-	}
-
-	switch {
-	case envExists || envSaved:
-		message := fmt.Sprintf("%s found", workspace.EnvFileName)
-		if envSaved && !envExists {
-			message = fmt.Sprintf("%s created", workspace.EnvFileName)
-		}
-		checks = append(checks, doctorCheck{Name: "env_file", Status: doctorStatusOK, Message: message})
-	default:
-		checks = append(checks, doctorCheck{Name: "env_file", Status: doctorStatusWarn, Message: fmt.Sprintf("%s is missing", workspace.EnvFileName)})
-	}
-
-	resolvedRefs := resolveDoctorRefs(loaded.Config.Refs, env)
+	resolvedRefs := resolveDoctorRefs(loaded.Config.Refs)
+	checks = append(checks, checkDoctorStoredPaths(resolvedRefs)...)
 	checks = append(checks, checkDoctorNameConflicts(loaded.Config.Refs)...)
 	checks = append(checks, checkDoctorCaseCollisions(loaded.Config.Refs)...)
 	checks = append(checks, checkDoctorWorkspaceNesting(loaded.Root, resolvedRefs)...)
@@ -170,102 +120,39 @@ func runDoctor(input io.Reader, output io.Writer, interactive bool) (doctorRepor
 	return report, nil
 }
 
-func loadDoctorEnv(root string) (workspace.EnvVars, bool, error) {
-	env, err := workspace.LoadEnv(root)
-	if err == nil {
-		return env, true, nil
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		return workspace.EnvVars{}, false, nil
-	}
-	return nil, false, err
-}
-
-func collectDoctorVariables(refs []workspace.Ref) []string {
-	unique := map[string]struct{}{}
-	for _, ref := range refs {
-		matches := doctorVariablePattern.FindAllStringSubmatch(ref.Path, -1)
-		for _, match := range matches {
-			if len(match) != 2 {
-				continue
-			}
-			unique[match[1]] = struct{}{}
-		}
-	}
-
-	names := make([]string, 0, len(unique))
-	for name := range unique {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	return names
-}
-
-func resolveDoctorVariables(root string, input io.Reader, output io.Writer, env workspace.EnvVars, varNames []string, interactive bool, checks *[]doctorCheck, envSaved *bool) error {
-	reader := bufio.NewReader(input)
-
-	for _, name := range varNames {
-		checkName := "var_" + name
-		if hasDoctorVariableValue(name, env) {
-			*checks = append(*checks, doctorCheck{Name: checkName, Status: doctorStatusOK, Message: fmt.Sprintf("%s resolved", name)})
-			continue
-		}
-
-		if !interactive {
-			*checks = append(*checks, doctorCheck{Name: checkName, Status: doctorStatusError, Message: fmt.Sprintf("%s is not defined in %s or environment", name, workspace.EnvFileName)})
-			continue
-		}
-
-		if _, err := fmt.Fprintf(output, "Enter the path for %s: ", name); err != nil {
-			return err
-		}
-
-		line, err := reader.ReadString('\n')
-		if err != nil && !errors.Is(err, io.EOF) {
-			return err
-		}
-
-		value := strings.TrimSpace(line)
-		if value == "" {
-			*checks = append(*checks, doctorCheck{Name: checkName, Status: doctorStatusError, Message: fmt.Sprintf("no value provided for %s", name)})
-			continue
-		}
-
-		env[name] = value
-		if err := workspace.SaveEnv(root, env); err != nil {
-			return err
-		}
-		*envSaved = true
-
-		if _, err := fmt.Fprintf(output, "Saved %s to %s\n", name, workspace.EnvFileName); err != nil {
-			return err
-		}
-
-		*checks = append(*checks, doctorCheck{Name: checkName, Status: doctorStatusOK, Message: fmt.Sprintf("%s resolved", name)})
-	}
-
-	return nil
-}
-
-func hasDoctorVariableValue(name string, env workspace.EnvVars) bool {
-	if env != nil {
-		if value, ok := env[name]; ok && strings.TrimSpace(value) != "" {
-			return true
-		}
-	}
-
-	value, ok := os.LookupEnv(name)
-	return ok && strings.TrimSpace(value) != ""
-}
-
-func resolveDoctorRefs(refs []workspace.Ref, env workspace.EnvVars) []doctorResolvedRef {
+func resolveDoctorRefs(refs []workspace.Ref) []doctorResolvedRef {
 	items := make([]doctorResolvedRef, 0, len(refs))
 	for _, ref := range refs {
 		item := doctorResolvedRef{Ref: ref}
-		item.ResolvedPath, item.ResolveErr = workspace.ResolvePath(ref.Path, env)
+		item.ResolvedPath, item.ResolveErr = workspace.ResolveStoredPath(ref.Path)
 		items = append(items, item)
 	}
 	return items
+}
+
+func checkDoctorStoredPaths(refs []doctorResolvedRef) []doctorCheck {
+	problems := make([]string, 0)
+
+	for _, ref := range refs {
+		if ref.ResolveErr != nil {
+			problems = append(problems, fmt.Sprintf("%s: %v", ref.Ref.Name, ref.ResolveErr))
+		}
+	}
+
+	if len(problems) == 0 {
+		return []doctorCheck{{
+			Name:    "stored_paths_valid",
+			Status:  doctorStatusOK,
+			Message: "all ref paths are stored as absolute paths",
+		}}
+	}
+
+	sort.Strings(problems)
+	return []doctorCheck{{
+		Name:    "stored_paths_valid",
+		Status:  doctorStatusError,
+		Message: strings.Join(problems, "; "),
+	}}
 }
 
 func checkDoctorNameConflicts(refs []workspace.Ref) []doctorCheck {
@@ -404,8 +291,8 @@ func checkDoctorLinks(root string, refs []doctorResolvedRef) []doctorCheck {
 	for _, ref := range refs {
 		check := doctorCheck{Name: ref.Ref.Name + "_link"}
 		if ref.ResolveErr != nil {
-			check.Status = doctorStatusError
-			check.Message = ref.ResolveErr.Error()
+			check.Status = doctorStatusWarn
+			check.Message = "link check skipped because the stored path is invalid"
 			checks = append(checks, check)
 			continue
 		}
@@ -440,7 +327,7 @@ func checkDoctorGitRepos(refs []doctorResolvedRef) []doctorCheck {
 		check := doctorCheck{Name: ref.Ref.Name + "_git"}
 		if ref.ResolveErr != nil {
 			check.Status = doctorStatusWarn
-			check.Message = "git check skipped because the ref path could not be resolved"
+			check.Message = "git check skipped because the stored path is invalid"
 			checks = append(checks, check)
 			continue
 		}

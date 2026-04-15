@@ -13,15 +13,6 @@ import (
 func TestPromptRendersWorkspaceSummaryTreeAndDetections(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-			{Name: "misc", Path: `${WORK_REPOS}/misc`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writePromptFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
@@ -29,7 +20,15 @@ func TestPromptRendersWorkspaceSummaryTreeAndDetections(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(reposRoot, "misc", "src"), 0o755); err != nil {
 		t.Fatalf("MkdirAll(misc/src) error = %v", err)
 	}
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+			{Name: "misc", Path: filepath.Join(reposRoot, "misc")},
+		},
+	})
 
 	stdout := new(bytes.Buffer)
 	command := NewRootCommand()
@@ -63,17 +62,16 @@ func TestPromptRendersWorkspaceSummaryTreeAndDetections(t *testing.T) {
 func TestPromptCopyWritesToClipboard(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writePromptFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+		},
+	})
 
 	var copied string
 	restore := swapPromptClipboardWriter(func(content string) error {

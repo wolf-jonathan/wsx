@@ -12,7 +12,7 @@ import (
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
-func TestAddCreatesLinkAndStoresParameterizedPath(t *testing.T) {
+func TestAddCreatesLinkAndStoresAbsolutePath(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
 
@@ -24,9 +24,6 @@ func TestAddCreatesLinkAndStoresParameterizedPath(t *testing.T) {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), []byte("WORK_REPOS="+reposRoot+"\n"), 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
-	}
 	instructionFile := filepath.Join(root, "AGENTS.md")
 	if err := os.WriteFile(instructionFile, []byte("workspace instructions\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile(AGENTS.md) error = %v", err)
@@ -69,8 +66,8 @@ func TestAddCreatesLinkAndStoresParameterizedPath(t *testing.T) {
 		t.Fatalf("ref.Name = %q, want auth-service", ref.Name)
 	}
 
-	if ref.Path != "${WORK_REPOS}/auth-service" {
-		t.Fatalf("ref.Path = %q, want ${WORK_REPOS}/auth-service", ref.Path)
+	if ref.Path != target {
+		t.Fatalf("ref.Path = %q, want %q", ref.Path, target)
 	}
 
 	linkPath := filepath.Join(root, "auth-service")
@@ -92,7 +89,7 @@ func TestAddCreatesLinkAndStoresParameterizedPath(t *testing.T) {
 	}
 }
 
-func TestAddSupportsParameterizedInputAndCustomName(t *testing.T) {
+func TestAddSupportsAbsoluteInputAndCustomName(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
 
@@ -104,12 +101,8 @@ func TestAddSupportsParameterizedInputAndCustomName(t *testing.T) {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), []byte("WORK_REPOS="+reposRoot+"\n"), 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
-	}
-
 	command := cmd.NewRootCommand()
-	command.SetArgs([]string{"add", `${WORK_REPOS}\payments-api`, "--as", "payments"})
+	command.SetArgs([]string{"add", target, "--as", "payments"})
 	command.SetOut(new(bytes.Buffer))
 	command.SetErr(new(bytes.Buffer))
 
@@ -127,8 +120,8 @@ func TestAddSupportsParameterizedInputAndCustomName(t *testing.T) {
 		t.Fatalf("ref.Name = %q, want payments", ref.Name)
 	}
 
-	if ref.Path != "${WORK_REPOS}/payments-api" {
-		t.Fatalf("ref.Path = %q, want ${WORK_REPOS}/payments-api", ref.Path)
+	if ref.Path != target {
+		t.Fatalf("ref.Path = %q, want %q", ref.Path, target)
 	}
 
 	linkPath := filepath.Join(root, "payments")
@@ -194,14 +187,14 @@ func TestAddSupportsFavoriteNameWithoutWorkspaceImport(t *testing.T) {
 	if ref.Name != "auth-service" {
 		t.Fatalf("ref.Name = %q, want auth-service", ref.Name)
 	}
-	if ref.Path != "${AUTH_SERVICE}" {
-		t.Fatalf("ref.Path = %q, want ${AUTH_SERVICE}", ref.Path)
+	if ref.Path != target {
+		t.Fatalf("ref.Path = %q, want %q", ref.Path, target)
 	}
 
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q, want empty", stderr.String())
 	}
-	if !strings.Contains(stdout.String(), `Added "auth-service" -> ${AUTH_SERVICE}`) {
+	if !strings.Contains(stdout.String(), `Added "auth-service" -> `+target) {
 		t.Fatalf("stdout = %q, want favorite-based add confirmation", stdout.String())
 	}
 }
@@ -232,7 +225,7 @@ func TestAddRejectsNameConflictsWithoutMutatingConfig(t *testing.T) {
 	chdirForTest(t, root)
 
 	cfg := workspace.Config{
-		Version: "1",
+		Version: "2",
 		Name:    "payments-debug",
 		Refs: []workspace.Ref{
 			{
@@ -244,10 +237,6 @@ func TestAddRejectsNameConflictsWithoutMutatingConfig(t *testing.T) {
 	if err := workspace.SaveConfig(root, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), nil, 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
-	}
-
 	target := filepath.Join(t.TempDir(), "auth-service")
 	if err := os.MkdirAll(target, 0o755); err != nil {
 		t.Fatalf("MkdirAll(target) error = %v", err)

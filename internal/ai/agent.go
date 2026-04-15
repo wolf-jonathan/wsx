@@ -109,8 +109,7 @@ func RenderWorkspaceInstructions(instructions WorkspaceInstructions) string {
 	builder.WriteString("The workspace root contains linked repositories managed by `wsx`. Treat those directories as links to real repos elsewhere on disk, not copied sources.\n\n")
 
 	builder.WriteString("## Workspace Rules\n\n")
-	builder.WriteString("- `.wsx.json` stores portable placeholder paths and must not be rewritten to machine-specific absolute paths.\n")
-	builder.WriteString("- `.wsx.env` is local-only machine state and should not be committed from the workspace.\n")
+	builder.WriteString("- `.wsx.json` stores absolute local paths for linked repositories and should stay gitignored in personal workspaces.\n")
 	builder.WriteString("- Linked repo directories in the workspace root may be symlinks or junctions depending on platform and permissions.\n")
 	builder.WriteString("- When a repo-specific section below applies to the repo you are editing, follow that section in addition to these workspace-wide rules.\n\n")
 

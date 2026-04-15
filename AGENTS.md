@@ -9,10 +9,9 @@ repositories into one workspace directory.
 ## Product Rules
 
 - Treat `README.md`, CLI help output, and tests as the current source of truth unless the user explicitly overrides them.
-- Preserve the core model: a workspace contains `.wsx.json`, `.wsx.env`, and linked repo directories.
-- Keep `.wsx.json` portable. Stored paths should remain parameterized with `${VAR}` placeholders when available.
-- Resolve `${VAR}` placeholders at point of use. Loading config must not silently rewrite them to absolute paths.
-- `.wsx.env` is local-only workspace state and must never be committed by the workspace created by `wsx init`.
+- Preserve the core model: a workspace contains `.wsx.json` and linked repo directories.
+- Store absolute paths directly in `.wsx.json`.
+- `.wsx.json` is local workspace state and should be gitignored by workspaces created with `wsx init`.
 - On Windows, link creation must try symlinks first and fall back to directory junctions when permission errors occur.
 - `link_type` is runtime state and must not be stored in `.wsx.json`.
 - `wsx exec` must forward argv directly to process execution. Shell behavior is opt-in and explicit.
@@ -55,10 +54,10 @@ wsx/
 
 ## Command-Specific Expectations
 
-- `wsx init` creates `.wsx.json`, `.wsx.env`, and ensures `.wsx.env` is added to the workspace `.gitignore`.
-- `wsx add` supports absolute and parameterized input paths, detects circular references, and prevents name conflicts.
+- `wsx init` creates `.wsx.json` and ensures `.wsx.json` is added to the workspace `.gitignore` without overwriting existing `.gitignore` contents.
+- `wsx add` stores absolute paths, supports `--favorite <NAME>` as an input shortcut, detects circular references, and prevents name conflicts.
 - `wsx list` reports live link health and runtime link type.
-- `wsx doctor` must distinguish interactive TTY behavior from non-interactive agent or CI behavior.
+- `wsx doctor` validates stored absolute paths, link health, and stale generated workspace instruction files.
 - `wsx fetch` is the safe built-in multi-repo sync primitive. Do not replace it with implicit pull behavior.
 - `wsx tree` is the discovery command. Keep it cheap and readable.
 - `wsx grep` is the narrowing command. Use it before opening files broadly.

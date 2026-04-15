@@ -35,8 +35,8 @@ func TestInitCreatesWorkspaceFiles(t *testing.T) {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
 
-	if cfg.Version != "1" {
-		t.Fatalf("Version = %q, want 1", cfg.Version)
+	if cfg.Version != "2" {
+		t.Fatalf("Version = %q, want 2", cfg.Version)
 	}
 
 	if cfg.Name != "payments-debug" {
@@ -47,22 +47,13 @@ func TestInitCreatesWorkspaceFiles(t *testing.T) {
 		t.Fatalf("Refs length = %d, want 0", len(cfg.Refs))
 	}
 
-	envContent, err := os.ReadFile(filepath.Join(root, workspace.EnvFileName))
-	if err != nil {
-		t.Fatalf("ReadFile(.wsx.env) error = %v", err)
-	}
-
-	if string(envContent) != "" {
-		t.Fatalf(".wsx.env content = %q, want empty file", string(envContent))
-	}
-
 	gitignoreContent, err := os.ReadFile(filepath.Join(root, ".gitignore"))
 	if err != nil {
 		t.Fatalf("ReadFile(.gitignore) error = %v", err)
 	}
 
-	if string(gitignoreContent) != workspace.EnvFileName+"\n" {
-		t.Fatalf(".gitignore content = %q, want %q", string(gitignoreContent), workspace.EnvFileName+"\\n")
+	if string(gitignoreContent) != workspace.ConfigFileName+"\n" {
+		t.Fatalf(".gitignore content = %q, want %q", string(gitignoreContent), workspace.ConfigFileName+"\\n")
 	}
 }
 
@@ -110,8 +101,8 @@ func TestInitDefaultsNameAndAppendsGitignoreOnce(t *testing.T) {
 		t.Fatalf("first .gitignore line = %q, want node_modules/", lines[0])
 	}
 
-	if lines[1] != workspace.EnvFileName {
-		t.Fatalf("second .gitignore line = %q, want %q", lines[1], workspace.EnvFileName)
+	if lines[1] != workspace.ConfigFileName {
+		t.Fatalf("second .gitignore line = %q, want %q", lines[1], workspace.ConfigFileName)
 	}
 }
 
@@ -120,7 +111,7 @@ func TestInitFailsWhenWorkspaceAlreadyInitialized(t *testing.T) {
 	chdirForTest(t, root)
 
 	original := workspace.Config{
-		Version: "1",
+		Version: "2",
 		Name:    "existing-workspace",
 	}
 	if err := workspace.SaveConfig(root, original); err != nil {
@@ -157,9 +148,6 @@ func TestInitFailsWhenWorkspaceAlreadyInitialized(t *testing.T) {
 		t.Fatalf("Name after failed init = %q, want existing-workspace", loaded.Config.Name)
 	}
 
-	if _, statErr := os.Stat(filepath.Join(root, workspace.EnvFileName)); !os.IsNotExist(statErr) {
-		t.Fatalf(".wsx.env stat error = %v, want not exists", statErr)
-	}
 }
 
 func chdirForTest(t *testing.T, dir string) {

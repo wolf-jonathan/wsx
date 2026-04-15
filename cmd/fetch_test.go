@@ -18,15 +18,6 @@ import (
 func TestFetchShowsPerRepoSummariesAndReturnsErrorForFailures(t *testing.T) {
 	root := t.TempDir()
 	chdirForFetchTest(t, root)
-	writeFetchWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	for _, name := range []string{"auth-service", "payments-api", "frontend"} {
@@ -34,7 +25,15 @@ func TestFetchShowsPerRepoSummariesAndReturnsErrorForFailures(t *testing.T) {
 			t.Fatalf("MkdirAll(%s) error = %v", name, err)
 		}
 	}
-	writeFetchEnv(t, root, reposRoot)
+	writeFetchWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "payments-api", Path: filepath.Join(reposRoot, "payments-api")},
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+		},
+	})
 
 	stub := &stubFetchClient{
 		results: map[string]stubFetchResult{
@@ -93,20 +92,19 @@ func TestFetchShowsPerRepoSummariesAndReturnsErrorForFailures(t *testing.T) {
 func TestFetchJSONIncludesResolvedPathsAndExitCodes(t *testing.T) {
 	root := t.TempDir()
 	chdirForFetchTest(t, root)
-	writeFetchWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	target := filepath.Join(reposRoot, "auth-service")
 	if err := os.MkdirAll(target, 0o755); err != nil {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
-	writeFetchEnv(t, root, reposRoot)
+	writeFetchWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: target},
+		},
+	})
 
 	stub := &stubFetchClient{
 		results: map[string]stubFetchResult{
@@ -145,8 +143,8 @@ func TestFetchJSONIncludesResolvedPathsAndExitCodes(t *testing.T) {
 	if item.Name != "auth-service" {
 		t.Fatalf("item.Name = %q, want auth-service", item.Name)
 	}
-	if item.Path != "${WORK_REPOS}/auth-service" {
-		t.Fatalf("item.Path = %q, want ${WORK_REPOS}/auth-service", item.Path)
+	if item.Path != target {
+		t.Fatalf("item.Path = %q, want %q", item.Path, target)
 	}
 	if item.ResolvedPath != target {
 		t.Fatalf("item.ResolvedPath = %q, want %q", item.ResolvedPath, target)
@@ -165,14 +163,6 @@ func TestFetchJSONIncludesResolvedPathsAndExitCodes(t *testing.T) {
 func TestFetchParallelPreservesWorkspaceOrder(t *testing.T) {
 	root := t.TempDir()
 	chdirForFetchTest(t, root)
-	writeFetchWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	for _, name := range []string{"auth-service", "payments-api"} {
@@ -180,7 +170,14 @@ func TestFetchParallelPreservesWorkspaceOrder(t *testing.T) {
 			t.Fatalf("MkdirAll(%s) error = %v", name, err)
 		}
 	}
-	writeFetchEnv(t, root, reposRoot)
+	writeFetchWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "payments-api", Path: filepath.Join(reposRoot, "payments-api")},
+		},
+	})
 
 	stub := newBlockingFetchClient()
 	stub.results[filepath.Join(reposRoot, "auth-service")] = stubFetchResult{
@@ -304,15 +301,6 @@ func writeFetchWorkspace(t *testing.T, root string, cfg workspace.Config) {
 
 	if err := workspace.SaveConfig(root, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
-	}
-}
-
-func writeFetchEnv(t *testing.T, root, reposRoot string) {
-	t.Helper()
-
-	content := []byte("WORK_REPOS=" + reposRoot + "\n")
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), content, 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -34,15 +33,10 @@ func newAddCommand() *cobra.Command {
 			return cobra.ExactArgs(1)(cmd, args)
 		},
 		Example: `wsx add C:\src\repos\auth-service
-wsx add ${WORK_REPOS}\payments-api --as payments
+wsx add C:\src\repos\payments-api --as payments
 wsx add --favorite AUTH_SERVICE`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			loaded, err := workspace.LoadConfig("")
-			if err != nil {
-				return err
-			}
-
-			env, err := loadWorkspaceEnv(loaded.Root)
 			if err != nil {
 				return err
 			}
@@ -59,15 +53,12 @@ wsx add --favorite AUTH_SERVICE`,
 					return fmt.Errorf("favorite %q not found", favoriteName)
 				}
 
-				inputPath = fmt.Sprintf("${%s}", favorite.Name)
+				inputPath = favorite.Path
 			} else {
 				inputPath = strings.TrimSpace(args[0])
-				if inputPath == "" {
-					return errors.New("path cannot be empty")
-				}
 			}
 
-			resolvedPath, err := resolveAddInputPath(inputPath, env)
+			resolvedPath, err := workspace.ResolveInputPath(inputPath)
 			if err != nil {
 				return err
 			}
@@ -96,7 +87,7 @@ wsx add --favorite AUTH_SERVICE`,
 				return err
 			}
 
-			storedPath := chooseStoredPath(inputPath, resolvedPath, env)
+			storedPath := resolvedPath
 			linkPath := filepath.Join(loaded.Root, name)
 			linkType, err := workspace.CreateLink(resolvedPath, linkPath)
 			if err != nil {
@@ -127,85 +118,6 @@ wsx add --favorite AUTH_SERVICE`,
 	command.Flags().StringVar(&linkName, "as", "", "Name to use for the workspace link")
 	command.Flags().StringVar(&favoriteName, "favorite", "", "Favorite name to add instead of providing a path")
 	return command
-}
-
-func loadWorkspaceEnv(root string) (workspace.EnvVars, error) {
-	env, err := workspace.LoadEnv(root)
-	if err == nil {
-		return env, nil
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		return workspace.EnvVars{}, nil
-	}
-	return nil, err
-}
-
-func resolveAddInputPath(inputPath string, env workspace.EnvVars) (string, error) {
-	resolved := inputPath
-	if strings.Contains(inputPath, "${") {
-		var err error
-		resolved, err = workspace.ResolvePath(inputPath, env)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	if !filepath.IsAbs(resolved) {
-		absolute, err := filepath.Abs(resolved)
-		if err != nil {
-			return "", err
-		}
-		resolved = absolute
-	}
-
-	return filepath.Clean(resolved), nil
-}
-
-func chooseStoredPath(inputPath, absolutePath string, env workspace.EnvVars) string {
-	if strings.Contains(inputPath, "${") {
-		return normalizePortablePath(inputPath)
-	}
-
-	parameterized, ok := parameterizePath(absolutePath, env)
-	if ok {
-		return parameterized
-	}
-
-	return normalizePortablePath(absolutePath)
-}
-
-func parameterizePath(absolutePath string, env workspace.EnvVars) (string, bool) {
-	cleanTarget := filepath.Clean(absolutePath)
-	bestName := ""
-	bestValue := ""
-
-	for name, value := range env {
-		if strings.TrimSpace(name) == "" || strings.TrimSpace(value) == "" {
-			continue
-		}
-
-		cleanValue := filepath.Clean(value)
-		relative, ok := relativeIfWithin(cleanValue, cleanTarget)
-		if !ok {
-			continue
-		}
-
-		candidate := fmt.Sprintf("${%s}", name)
-		if relative != "" {
-			candidate += "/" + normalizePortablePath(relative)
-		}
-
-		if len(cleanValue) > len(bestValue) {
-			bestName = candidate
-			bestValue = cleanValue
-		}
-	}
-
-	if bestName == "" {
-		return "", false
-	}
-
-	return bestName, true
 }
 
 func rejectCircularReference(workspaceRoot, target string) error {
@@ -264,19 +176,6 @@ func relativeIfWithin(base, target string) (string, bool) {
 	}
 
 	return relative, true
-}
-
-func normalizePortablePath(path string) string {
-	normalized := strings.ReplaceAll(path, `\`, `/`)
-	return pathpkgClean(normalized)
-}
-
-func pathpkgClean(value string) string {
-	cleaned := path.Clean(value)
-	if cleaned == "." && value != "." && value != "" {
-		return ""
-	}
-	return cleaned
 }
 
 func samePath(left, right string) bool {

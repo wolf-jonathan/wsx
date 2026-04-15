@@ -54,7 +54,7 @@ already have, so you can:
 - open one folder instead of juggling several
 - give AI tools a clearer picture of the project you are actually working on
 - keep your setup repeatable instead of rebuilding it every session
-- share the workspace shape with teammates without baking in your personal paths
+- keep the workspace shape simple instead of maintaining extra path indirection
 
 ---
 
@@ -62,17 +62,13 @@ already have, so you can:
 
 A Workspace X workspace contains:
 
-- `.wsx.json` as the committed shared workspace config
-- `.wsx.env` as the local machine-specific path variable file
+- `.wsx.json` as the local workspace config
 - linked repo directories at the workspace root
 
 Core invariants:
 
-- `.wsx.json` stores portable `${VAR}` placeholders when available and must not
-  be silently rewritten to machine-specific absolute paths
-- path resolution happens at point of use, not during config load
-- `.wsx.env` is local-only workspace state and must never be committed by
-  generated workspaces
+- `.wsx.json` stores absolute paths to linked repos
+- `.wsx.json` is local workspace state and `wsx init` adds it to `.gitignore`
 - `link_type` is runtime state and is detected from disk instead of being
   persisted in config
 - `wsx exec` forwards argv directly and does not invoke a shell unless the
@@ -140,19 +136,12 @@ cd C:\work\payments-debug
 wsx init
 ```
 
-Define local path variables in `.wsx.env`:
-
-```text
-WORK_REPOS=C:\Users\you\src
-PERSONAL_REPOS=C:\Users\you\projects
-```
-
 Add repositories:
 
 ```powershell
-wsx add ${WORK_REPOS}\auth-service
-wsx add ${WORK_REPOS}\payments-api
-wsx add ${PERSONAL_REPOS}\frontend --as frontend
+wsx add C:\Users\you\src\auth-service
+wsx add C:\Users\you\src\payments-api
+wsx add C:\Users\you\projects\frontend --as frontend
 wsx add --favorite AUTH_SERVICE
 ```
 
@@ -179,15 +168,14 @@ wsx exec -- git status --short --branch
 
 | Command | What It Does |
 |---------|--------------|
-| `wsx init [name]` | Creates `.wsx.json`, `.wsx.env`, and ensures `.wsx.env` is ignored |
+| `wsx init [name]` | Creates `.wsx.json` and ensures `.wsx.json` is ignored |
 | `wsx add <path> [--as <name>]` | Adds a linked repository to the workspace |
 | `wsx remove <name>` | Removes a linked repository from config and removes only the workspace link |
 | `wsx list [--json]` | Lists linked repos with stored path, resolved path, runtime link type, and health |
-| `wsx doctor [--json] [--fix]` | Validates workspace health and portability, including stale generated workspace instruction files |
+| `wsx doctor [--json]` | Validates workspace health, stored paths, links, and stale generated workspace instruction files |
 | `wsx favorite add <path> --name <NAME>` | Saves a reusable global path favorite |
 | `wsx favorite list [--json]` | Lists saved global path favorites |
 | `wsx favorite remove <NAME>` | Removes a saved global path favorite |
-| `wsx favorite import <NAME>...` | Imports saved favorites into the current workspace `.wsx.env` when you explicitly want local env entries |
 
 ### Git and execution commands
 
@@ -266,19 +254,8 @@ Add a favorite directly to the workspace:
 wsx add --favorite AUTH_SERVICE
 ```
 
-`wsx add --favorite <NAME>` stores the workspace ref as `${NAME}` and later wsx
-commands resolve that placeholder from the global favorites store automatically.
-
-Import favorites into the current workspace `.wsx.env` only when you explicitly
-want local env entries:
-
-```powershell
-wsx favorite import WORK_REPOS
-wsx favorite import WORK_REPOS PERSONAL_REPOS
-```
-
-Imported favorites become normal workspace env entries, which override any
-global favorite with the same name for that workspace.
+`wsx add --favorite <NAME>` resolves the favorite immediately and stores the
+absolute path in `.wsx.json`.
 
 ---
 

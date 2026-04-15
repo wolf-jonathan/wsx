@@ -19,13 +19,13 @@ func TestSaveConfigWritesExpectedSchema(t *testing.T) {
 	added := created.Add(5 * time.Minute)
 
 	cfg := workspace.Config{
-		Version: "1",
+		Version: "2",
 		Name:    "payments-debug",
 		Created: created,
 		Refs: []workspace.Ref{
 			{
 				Name:  "auth-service",
-				Path:  "${WORK_REPOS}/auth-service",
+				Path:  `C:\repos\auth-service`,
 				Added: added,
 			},
 		},
@@ -59,8 +59,8 @@ func TestSaveConfigWritesExpectedSchema(t *testing.T) {
 		t.Fatalf("refs[0] = %T, want object", refs[0])
 	}
 
-	if got := ref["path"]; got != "${WORK_REPOS}/auth-service" {
-		t.Fatalf("stored path = %v, want placeholder form preserved", got)
+	if got := ref["path"]; got != `C:\repos\auth-service` {
+		t.Fatalf("stored path = %v, want absolute path preserved", got)
 	}
 }
 
@@ -74,7 +74,7 @@ func TestLoadConfigDiscoversWorkspaceByWalkingUp(t *testing.T) {
 	}
 
 	cfg := workspace.Config{
-		Version: "1",
+		Version: "2",
 		Name:    "payments-debug",
 		Created: time.Date(2026, 4, 12, 10, 0, 0, 0, time.UTC),
 	}

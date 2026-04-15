@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -57,18 +56,13 @@ wsx exec --parallel -- npm test`,
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			runner := newExecRunner()
 			items := make([]execItem, len(loaded.Config.Refs))
 
 			if parallel {
-				runExecsInParallel(loaded.Config.Refs, env, runner, args, items)
+				runExecsInParallel(loaded.Config.Refs, runner, args, items)
 			} else {
-				runExecsSequentially(loaded.Config.Refs, env, runner, args, items)
+				runExecsSequentially(loaded.Config.Refs, runner, args, items)
 			}
 
 			hasFailures := false
@@ -102,34 +96,34 @@ wsx exec --parallel -- npm test`,
 	return command
 }
 
-func runExecsSequentially(refs []workspace.Ref, env workspace.EnvVars, runner commandRunner, commandArgs []string, items []execItem) {
+func runExecsSequentially(refs []workspace.Ref, runner commandRunner, commandArgs []string, items []execItem) {
 	for index, ref := range refs {
-		items[index] = execRef(ref, env, runner, commandArgs)
+		items[index] = execRef(ref, runner, commandArgs)
 	}
 }
 
-func runExecsInParallel(refs []workspace.Ref, env workspace.EnvVars, runner commandRunner, commandArgs []string, items []execItem) {
+func runExecsInParallel(refs []workspace.Ref, runner commandRunner, commandArgs []string, items []execItem) {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(refs))
 
 	for index, ref := range refs {
 		go func(index int, ref workspace.Ref) {
 			defer waitGroup.Done()
-			items[index] = execRef(ref, env, runner, commandArgs)
+			items[index] = execRef(ref, runner, commandArgs)
 		}(index, ref)
 	}
 
 	waitGroup.Wait()
 }
 
-func execRef(ref workspace.Ref, env workspace.EnvVars, runner commandRunner, commandArgs []string) execItem {
+func execRef(ref workspace.Ref, runner commandRunner, commandArgs []string) execItem {
 	item := execItem{
 		Name:    ref.Name,
 		Path:    ref.Path,
 		Command: append([]string(nil), commandArgs...),
 	}
 
-	resolvedPath, resolveErr := resolveExecPath(ref, env)
+	resolvedPath, resolveErr := resolveExecPath(ref)
 	if resolveErr != nil {
 		item.Error = resolveErr.Error()
 		item.Stderr = resolveErr.Error()
@@ -215,12 +209,8 @@ func execItemFailed(item execItem) bool {
 	return item.Error != "" || item.ExitCode != 0
 }
 
-func resolveExecPath(ref workspace.Ref, env workspace.EnvVars) (string, error) {
-	if strings.TrimSpace(ref.Path) == "" {
-		return "", errors.New("ref path cannot be empty")
-	}
-
-	resolvedPath, err := workspace.ResolvePath(ref.Path, env)
+func resolveExecPath(ref workspace.Ref) (string, error) {
+	resolvedPath, err := workspace.ResolveStoredPath(ref.Path)
 	if err != nil {
 		return "", err
 	}

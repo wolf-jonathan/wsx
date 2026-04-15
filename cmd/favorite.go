@@ -25,7 +25,6 @@ func newFavoriteCommand() *cobra.Command {
 	command.AddCommand(newFavoriteAddCommand())
 	command.AddCommand(newFavoriteListCommand())
 	command.AddCommand(newFavoriteRemoveCommand())
-	command.AddCommand(newFavoriteImportCommand())
 	return command
 }
 
@@ -33,9 +32,9 @@ func newFavoriteAddCommand() *cobra.Command {
 	var favoriteName string
 
 	command := &cobra.Command{
-		Use:   "add <path>",
-		Short: "Save a global favorite path",
-		Args:  cobra.ExactArgs(1),
+		Use:     "add <path>",
+		Short:   "Save a global favorite path",
+		Args:    cobra.ExactArgs(1),
 		Example: `wsx favorite add C:\src\repos --name WORK_REPOS`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := strings.TrimSpace(favoriteName)
@@ -145,63 +144,6 @@ func newFavoriteRemoveCommand() *cobra.Command {
 	}
 }
 
-func newFavoriteImportCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "import <name>...",
-		Short: "Import saved favorites into the current workspace env file",
-		Args:  cobra.MinimumNArgs(1),
-		Example: `wsx favorite import WORK_REPOS
-wsx favorite import WORK_REPOS CORP_REPOS`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			loaded, err := workspace.LoadConfig("")
-			if err != nil {
-				return err
-			}
-
-			store, err := loadFavoriteStoreOrEmpty()
-			if err != nil {
-				return err
-			}
-
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
-			imported := make([]workspace.Favorite, 0, len(args))
-			for _, rawName := range args {
-				name := strings.TrimSpace(rawName)
-				if name == "" {
-					return errors.New("favorite name cannot be empty")
-				}
-				if containsFavoriteName(imported, name) {
-					continue
-				}
-
-				favorite, ok := store.Get(name)
-				if !ok {
-					return fmt.Errorf("favorite %q not found", name)
-				}
-
-				env[favorite.Name] = favorite.Path
-				imported = append(imported, favorite)
-			}
-
-			if err := workspace.SaveEnv(loaded.Root, env); err != nil {
-				return err
-			}
-
-			for _, favorite := range imported {
-				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Imported %q into %s\n", favorite.Name, workspace.EnvFileName); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
 func loadFavoriteStoreOrEmpty() (workspace.FavoriteStore, error) {
 	store, err := workspace.LoadFavoriteStore()
 	if err == nil {
@@ -259,16 +201,6 @@ func formatFavoriteAdded(added time.Time) string {
 	}
 
 	return added.UTC().Format(time.RFC3339)
-}
-
-func containsFavoriteName(favorites []workspace.Favorite, name string) bool {
-	for _, favorite := range favorites {
-		if sameFavoriteName(favorite.Name, name) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func sameFavoriteName(left, right string) bool {

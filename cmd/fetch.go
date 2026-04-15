@@ -2,16 +2,15 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
 	"text/tabwriter"
 
+	"github.com/spf13/cobra"
 	wsxgit "github.com/wolf-jonathan/workspace-x/internal/git"
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
-	"github.com/spf13/cobra"
 )
 
 type gitFetchClient interface {
@@ -53,18 +52,13 @@ func newFetchCommand() *cobra.Command {
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			client := newFetchGitClient()
 			items := make([]fetchItem, len(loaded.Config.Refs))
 
 			if parallel {
-				runFetchesInParallel(loaded.Config.Refs, env, client, items)
+				runFetchesInParallel(loaded.Config.Refs, client, items)
 			} else {
-				runFetchesSequentially(loaded.Config.Refs, env, client, items)
+				runFetchesSequentially(loaded.Config.Refs, client, items)
 			}
 
 			hasFailures := false
@@ -98,33 +92,33 @@ func newFetchCommand() *cobra.Command {
 	return command
 }
 
-func runFetchesSequentially(refs []workspace.Ref, env workspace.EnvVars, client gitFetchClient, items []fetchItem) {
+func runFetchesSequentially(refs []workspace.Ref, client gitFetchClient, items []fetchItem) {
 	for index, ref := range refs {
-		items[index] = fetchRef(ref, env, client)
+		items[index] = fetchRef(ref, client)
 	}
 }
 
-func runFetchesInParallel(refs []workspace.Ref, env workspace.EnvVars, client gitFetchClient, items []fetchItem) {
+func runFetchesInParallel(refs []workspace.Ref, client gitFetchClient, items []fetchItem) {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(refs))
 
 	for index, ref := range refs {
 		go func(index int, ref workspace.Ref) {
 			defer waitGroup.Done()
-			items[index] = fetchRef(ref, env, client)
+			items[index] = fetchRef(ref, client)
 		}(index, ref)
 	}
 
 	waitGroup.Wait()
 }
 
-func fetchRef(ref workspace.Ref, env workspace.EnvVars, client gitFetchClient) fetchItem {
+func fetchRef(ref workspace.Ref, client gitFetchClient) fetchItem {
 	item := fetchItem{
 		Name: ref.Name,
 		Path: ref.Path,
 	}
 
-	resolvedPath, resolveErr := resolveFetchPath(ref, env)
+	resolvedPath, resolveErr := resolveFetchPath(ref)
 	if resolveErr != nil {
 		item.Error = resolveErr.Error()
 		item.Summary = "error: " + resolveErr.Error()
@@ -191,12 +185,8 @@ func writeFetchTable(cmd *cobra.Command, items []fetchItem) error {
 	return writer.Flush()
 }
 
-func resolveFetchPath(ref workspace.Ref, env workspace.EnvVars) (string, error) {
-	if strings.TrimSpace(ref.Path) == "" {
-		return "", errors.New("ref path cannot be empty")
-	}
-
-	resolvedPath, err := workspace.ResolvePath(ref.Path, env)
+func resolveFetchPath(ref workspace.Ref) (string, error) {
+	resolvedPath, err := workspace.ResolveStoredPath(ref.Path)
 	if err != nil {
 		return "", err
 	}

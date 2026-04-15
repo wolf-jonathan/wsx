@@ -24,14 +24,9 @@ func newAgentCommand() *cobra.Command {
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			repos := make([]ai.InstructionRepo, 0, len(loaded.Config.Refs))
 			for _, ref := range loaded.Config.Refs {
-				resolvedPath, err := resolveStatusPath(ref, env)
+				resolvedPath, err := resolveStatusPath(ref)
 				if err != nil {
 					return err
 				}

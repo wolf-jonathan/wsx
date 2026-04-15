@@ -17,7 +17,7 @@ Use `wsx` only when one of these is true:
 
 - The user explicitly asks to create or manage a Workspace X workspace
 - You have confirmed the current directory is already a `wsx` workspace by the
-  presence of `.wsx.json` and `.wsx.env`
+  presence of `.wsx.json`
 
 Only after that confirmation should you use the other `wsx` features such as
 health checks, multi-repo execution, tree discovery, or agent instruction
@@ -27,17 +27,14 @@ setup.
 
 A Workspace X workspace contains:
 
-- A portable committed config file: `.wsx.json`
-- A local machine state file: `.wsx.env`
+- A local workspace config file: `.wsx.json`
 - One linked directory per configured repository at the workspace root
 
 Treat these as product invariants:
 
-- Keep `${VAR}` placeholders in `.wsx.json` when available. Do not rewrite them
-  to machine-specific absolute paths.
-- Resolve `${VAR}` placeholders only at point of use.
-- Treat `.wsx.env` as local-only state. It must stay out of git in generated
-  workspaces.
+- Store absolute paths directly in `.wsx.json`.
+- Treat `.wsx.json` as local workspace state. `wsx init` should ensure it is
+  gitignored without overwriting an existing `.gitignore`.
 - Treat `link_type` as runtime state. Detect it from disk; do not store it in
   `.wsx.json`.
 - On Windows, link creation should try symlinks first and fall back to
@@ -113,8 +110,8 @@ For automation:
 For setup:
 
 - Use `agent-init` when generating workspace instruction files
-- Use `favorite add`, `favorite list`, `favorite remove`, and `favorite import`
-  when managing reusable global path aliases
+- Use `favorite add`, `favorite list`, and `favorite remove` when managing
+  reusable global path aliases
 - Use `skill-install` or `skill-uninstall` when managing the bundled `wsx`
   skill
 
@@ -122,16 +119,16 @@ For setup:
 
 ### `wsx init [name]`
 
-Creates a new workspace root with `.wsx.json` and `.wsx.env`.
+Creates a new workspace root with `.wsx.json`.
 
 Use it when:
 
 - Starting a new `wsx` workspace
-- Creating the portable config and local env scaffold
+- Creating the local workspace config scaffold
 
 Expectations:
 
-- Ensures `.wsx.env` is added to the workspace `.gitignore`
+- Ensures `.wsx.json` is added to the workspace `.gitignore`
 - Preserves the workspace model defined above
 
 ### `wsx add <path> [--as name]`
@@ -146,11 +143,10 @@ Use it when:
 
 Expectations:
 
-- Accepts absolute or parameterized paths
+- Accepts absolute paths and supports `--favorite <NAME>` as an input shortcut
 - Also supports `--favorite <NAME>` for adding a saved global favorite directly
 - Rejects circular references and name conflicts
-- Creates a runtime link without rewriting portable config into machine-specific
-  absolute paths
+- Stores the resolved absolute path in `.wsx.json`
 
 ### `wsx remove <name>`
 
@@ -177,28 +173,24 @@ Agent guidance:
 
 - Prefer `--json` for automation and downstream tooling
 
-### `wsx doctor [--json] [--fix]`
+### `wsx doctor [--json]`
 
 Validates workspace health and portability.
 
 Use it when:
 
 - Entering an unfamiliar workspace
-- Checking for missing variables, broken links, config problems, or portability
-  issues
+- Checking for invalid stored paths, broken links, config problems, or stale
+  generated workspace instruction files
 
 Behavior:
 
-- In a TTY, `--fix` allows interactive resolution of missing variables
-- In non-interactive use, it reports errors and exits non-zero instead of
-  prompting
 - It also warns when generated workspace `AGENTS.md` or `CLAUDE.md` files are
   missing or stale relative to the current workspace state
 
 Agent guidance:
 
 - Always prefer `wsx doctor --json`
-- Do not use `--fix` in non-interactive agent flows
 
 ### `wsx status [--json] [--parallel]`
 
@@ -349,21 +341,6 @@ Removes one saved global favorite.
 Use it when:
 
 - Cleaning up or renaming a stale global path alias
-
-### `wsx favorite import <NAME>...`
-
-Imports one or more saved favorites into the current workspace `.wsx.env`.
-
-Use it when:
-
-- Bootstrapping a new workspace from reusable path aliases
-
-Expectation:
-
-- Imported favorites become normal workspace env entries available to later
-  wsx commands
-- Import is optional; `wsx add --favorite <NAME>` can use the global favorite
-  directly without importing it into `.wsx.env`
 
 ### `wsx skill-install [--scope local|global]`
 

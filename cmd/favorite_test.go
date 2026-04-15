@@ -98,46 +98,6 @@ func TestFavoriteAddListAndRemove(t *testing.T) {
 	}
 }
 
-func TestFavoriteImportWritesWorkspaceEnv(t *testing.T) {
-	configDir := t.TempDir()
-	setFavoriteConfigDirEnv(t, configDir)
-
-	favoriteRoot := filepath.Join(t.TempDir(), "repos", "auth-service")
-	if err := os.MkdirAll(favoriteRoot, 0o755); err != nil {
-		t.Fatalf("MkdirAll() error = %v", err)
-	}
-
-	add := cmd.NewRootCommand()
-	add.SetArgs([]string{"favorite", "add", favoriteRoot, "--name", "WORK_REPOS"})
-	add.SetOut(new(bytes.Buffer))
-	add.SetErr(new(bytes.Buffer))
-	if err := cmd.ExecuteCommand(add); err != nil {
-		t.Fatalf("ExecuteCommand(add) error = %v", err)
-	}
-
-	root := t.TempDir()
-	chdirForTest(t, root)
-	mustInitWorkspace(t, root, "payments-debug")
-
-	importCommand := cmd.NewRootCommand()
-	importCommand.SetArgs([]string{"favorite", "import", "WORK_REPOS"})
-	importCommand.SetOut(new(bytes.Buffer))
-	importCommand.SetErr(new(bytes.Buffer))
-	if err := cmd.ExecuteCommand(importCommand); err != nil {
-		t.Fatalf("ExecuteCommand(import) error = %v", err)
-	}
-
-	content, err := os.ReadFile(filepath.Join(root, workspace.EnvFileName))
-	if err != nil {
-		t.Fatalf("ReadFile(.wsx.env) error = %v", err)
-	}
-
-	want := "WORK_REPOS=" + favoriteRoot + "\n"
-	if string(content) != want {
-		t.Fatalf(".wsx.env = %q, want %q", string(content), want)
-	}
-}
-
 func setFavoriteConfigDirEnv(t *testing.T, dir string) {
 	t.Helper()
 

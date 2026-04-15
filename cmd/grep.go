@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
-	"github.com/spf13/cobra"
 )
 
 type grepCommandError struct {
@@ -45,14 +45,9 @@ wsx grep refreshToken --json --context 1`,
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			repos := make([]ai.GrepRepo, 0, len(loaded.Config.Refs))
 			for _, ref := range loaded.Config.Refs {
-				resolvedPath, err := resolveStatusPath(ref, env)
+				resolvedPath, err := resolveStatusPath(ref)
 				if err != nil {
 					return err
 				}

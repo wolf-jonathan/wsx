@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
-const configVersion = "1"
+const configVersion = "2"
 
 func newInitCommand() *cobra.Command {
 	return &cobra.Command{
@@ -51,11 +51,7 @@ func newInitCommand() *cobra.Command {
 				return err
 			}
 
-			if err := os.WriteFile(filepath.Join(cwd, workspace.EnvFileName), nil, 0o644); err != nil {
-				return err
-			}
-
-			if err := ensureGitignoreEntry(cwd, workspace.EnvFileName); err != nil {
+			if err := ensureGitignoreEntry(cwd, workspace.ConfigFileName); err != nil {
 				return err
 			}
 

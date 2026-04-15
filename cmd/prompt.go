@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
-	"github.com/spf13/cobra"
 )
 
 var writePromptClipboard = copyPromptToClipboard
@@ -27,15 +27,10 @@ func newPromptCommand() *cobra.Command {
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			treeRepos := make([]ai.TreeRepo, 0, len(loaded.Config.Refs))
 			promptRepos := make([]ai.PromptRepo, 0, len(loaded.Config.Refs))
 			for _, ref := range loaded.Config.Refs {
-				resolvedPath, resolveErr := resolveStatusPath(ref, env)
+				resolvedPath, resolveErr := resolveStatusPath(ref)
 				if resolveErr != nil {
 					return resolveErr
 				}

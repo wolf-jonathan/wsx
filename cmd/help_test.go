@@ -28,7 +28,7 @@ func TestCommandHelpShowsExamples(t *testing.T) {
 			snippets: []string{
 				"Examples:",
 				"wsx doctor",
-				"wsx doctor --fix",
+				"wsx doctor --json",
 			},
 		},
 		{
@@ -37,7 +37,7 @@ func TestCommandHelpShowsExamples(t *testing.T) {
 			snippets: []string{
 				"Examples:",
 				"wsx add C:\\src\\repos\\auth-service",
-				"wsx add ${WORK_REPOS}\\payments-api --as payments",
+				"wsx add C:\\src\\repos\\payments-api --as payments",
 				"wsx add --favorite AUTH_SERVICE",
 			},
 		},
@@ -92,15 +92,6 @@ func TestCommandHelpShowsExamples(t *testing.T) {
 				"Examples:",
 				"wsx favorite list",
 				"wsx favorite list --json",
-			},
-		},
-		{
-			name: "favorite import",
-			args: []string{"favorite", "import", "--help"},
-			snippets: []string{
-				"Examples:",
-				"wsx favorite import WORK_REPOS",
-				"wsx favorite import WORK_REPOS CORP_REPOS",
 			},
 		},
 	}

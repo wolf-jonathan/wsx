@@ -10,7 +10,6 @@ import (
 
 const (
 	ConfigFileName = ".wsx.json"
-	EnvFileName    = ".wsx.env"
 )
 
 var ErrWorkspaceNotFound = errors.New("workspace not found")

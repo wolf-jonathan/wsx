@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/wolf-jonathan/workspace-x/internal/ai"
 	"github.com/wolf-jonathan/workspace-x/internal/workspace"
-	"github.com/spf13/cobra"
 )
 
 func newTreeCommand() *cobra.Command {
@@ -22,14 +22,9 @@ wsx tree --all --depth 1`,
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			repos := make([]ai.TreeRepo, 0, len(loaded.Config.Refs))
 			for _, ref := range loaded.Config.Refs {
-				resolvedPath, err := resolveStatusPath(ref, env)
+				resolvedPath, err := resolveStatusPath(ref)
 				if err != nil {
 					return err
 				}

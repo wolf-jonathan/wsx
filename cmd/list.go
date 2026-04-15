@@ -6,8 +6,8 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 	"github.com/spf13/cobra"
+	"github.com/wolf-jonathan/workspace-x/internal/workspace"
 )
 
 const (
@@ -36,14 +36,9 @@ func newListCommand() *cobra.Command {
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			items := make([]listItem, 0, len(loaded.Config.Refs))
 			for _, ref := range loaded.Config.Refs {
-				items = append(items, buildListItem(loaded.Root, ref, env))
+				items = append(items, buildListItem(loaded.Root, ref))
 			}
 
 			if jsonOutput {
@@ -57,14 +52,14 @@ func newListCommand() *cobra.Command {
 	return command
 }
 
-func buildListItem(root string, ref workspace.Ref, env workspace.EnvVars) listItem {
+func buildListItem(root string, ref workspace.Ref) listItem {
 	item := listItem{
 		Name:   ref.Name,
 		Path:   ref.Path,
 		Status: listStatusOK,
 	}
 
-	resolvedPath, err := workspace.ResolvePath(ref.Path, env)
+	resolvedPath, err := workspace.ResolveStoredPath(ref.Path)
 	if err == nil {
 		item.ResolvedPath = resolvedPath
 		if info, statErr := os.Stat(resolvedPath); statErr != nil || !info.IsDir() {

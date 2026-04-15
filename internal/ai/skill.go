@@ -28,16 +28,14 @@ on a multi-repo workspace built from links to existing local repositories.
 
 ## What wsx manages
 
-- A workspace root containing .wsx.json, .wsx.env, and linked repo directories.
-- Portable committed config in .wsx.json.
-- Local machine path variables in .wsx.env.
+- A workspace root containing .wsx.json and linked repo directories.
+- Local workspace config in .wsx.json.
 - Symlinks or Windows junctions created at the workspace root.
 
 ## Required invariants
 
-- Keep ${VAR} placeholders in .wsx.json when available. Do not rewrite stored paths to machine-specific absolute paths.
-- Resolve ${VAR} placeholders only at point of use.
-- Treat .wsx.env as local-only state. It should be gitignored and never committed from generated workspaces.
+- Store absolute paths directly in .wsx.json.
+- Treat .wsx.json as local workspace state. It should be gitignored in generated workspaces.
 - Treat link_type as runtime state. Detect it from disk instead of storing it in .wsx.json.
 - On Windows, expect link creation to try symlinks first and fall back to junctions on permission errors.
 - wsx exec forwards argv directly. Shell operators work only if the caller explicitly invokes a shell.
@@ -53,11 +51,11 @@ on a multi-repo workspace built from links to existing local repositories.
 
 ## Command guidance
 
-- wsx init: creates .wsx.json, .wsx.env, and ensures .wsx.env is in .gitignore.
-- wsx add: accepts absolute or parameterized paths, rejects circular refs, and creates the runtime link.
+- wsx init: creates .wsx.json and ensures .wsx.json is in .gitignore.
+- wsx add: accepts absolute paths, supports --favorite as an input shortcut, rejects circular refs, and creates the runtime link.
 - wsx remove: removes the workspace link and config entry only. It must not touch the target repo.
 - wsx list: reports live link health and runtime link type.
-- wsx doctor: distinguishes interactive TTY use from non-interactive agent or CI use.
+- wsx doctor: validates stored absolute paths, link health, and stale workspace instruction files.
 - wsx tree: use this first for cheap workspace discovery.
 - wsx grep: use this after tree to narrow scope before reading files.
 `

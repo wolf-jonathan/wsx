@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -58,18 +57,13 @@ wsx status --parallel --json`,
 				return err
 			}
 
-			env, err := loadWorkspaceEnv(loaded.Root)
-			if err != nil {
-				return err
-			}
-
 			client := newStatusGitClient()
 			items := make([]statusItem, len(loaded.Config.Refs))
 
 			if parallel {
-				runStatusesInParallel(loaded.Config.Refs, env, client, items)
+				runStatusesInParallel(loaded.Config.Refs, client, items)
 			} else {
-				runStatusesSequentially(loaded.Config.Refs, env, client, items)
+				runStatusesSequentially(loaded.Config.Refs, client, items)
 			}
 
 			hasIssues := false
@@ -103,34 +97,34 @@ wsx status --parallel --json`,
 	return command
 }
 
-func runStatusesSequentially(refs []workspace.Ref, env workspace.EnvVars, client gitStatusClient, items []statusItem) {
+func runStatusesSequentially(refs []workspace.Ref, client gitStatusClient, items []statusItem) {
 	for index, ref := range refs {
-		items[index] = statusRef(ref, env, client)
+		items[index] = statusRef(ref, client)
 	}
 }
 
-func runStatusesInParallel(refs []workspace.Ref, env workspace.EnvVars, client gitStatusClient, items []statusItem) {
+func runStatusesInParallel(refs []workspace.Ref, client gitStatusClient, items []statusItem) {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(refs))
 
 	for index, ref := range refs {
 		go func(index int, ref workspace.Ref) {
 			defer waitGroup.Done()
-			items[index] = statusRef(ref, env, client)
+			items[index] = statusRef(ref, client)
 		}(index, ref)
 	}
 
 	waitGroup.Wait()
 }
 
-func statusRef(ref workspace.Ref, env workspace.EnvVars, client gitStatusClient) statusItem {
+func statusRef(ref workspace.Ref, client gitStatusClient) statusItem {
 	item := statusItem{
 		Name:  ref.Name,
 		Path:  ref.Path,
 		Clean: false,
 	}
 
-	resolvedPath, resolveErr := resolveStatusPath(ref, env)
+	resolvedPath, resolveErr := resolveStatusPath(ref)
 	if resolveErr != nil {
 		item.Error = resolveErr.Error()
 		item.Summary = "error: " + resolveErr.Error()
@@ -232,12 +226,8 @@ func writeStatusTable(cmd *cobra.Command, items []statusItem) error {
 	return writer.Flush()
 }
 
-func resolveStatusPath(ref workspace.Ref, env workspace.EnvVars) (string, error) {
-	if strings.TrimSpace(ref.Path) == "" {
-		return "", errors.New("ref path cannot be empty")
-	}
-
-	resolvedPath, err := workspace.ResolvePath(ref.Path, env)
+func resolveStatusPath(ref workspace.Ref) (string, error) {
+	resolvedPath, err := workspace.ResolveStoredPath(ref.Path)
 	if err != nil {
 		return "", err
 	}

@@ -88,12 +88,8 @@ func TestListJSONIncludesResolvedPathStatusAndLinkType(t *testing.T) {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), []byte("WORK_REPOS="+reposRoot+"\n"), 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
-	}
-
 	add := cmd.NewRootCommand()
-	add.SetArgs([]string{"add", `${WORK_REPOS}\payments-api`})
+	add.SetArgs([]string{"add", target})
 	add.SetOut(new(bytes.Buffer))
 	add.SetErr(new(bytes.Buffer))
 	if err := cmd.ExecuteCommand(add); err != nil {
@@ -128,8 +124,8 @@ func TestListJSONIncludesResolvedPathStatusAndLinkType(t *testing.T) {
 	if item.Name != "payments-api" {
 		t.Fatalf("item.Name = %q, want payments-api", item.Name)
 	}
-	if item.Path != "${WORK_REPOS}/payments-api" {
-		t.Fatalf("item.Path = %q, want ${WORK_REPOS}/payments-api", item.Path)
+	if item.Path != target {
+		t.Fatalf("item.Path = %q, want %q", item.Path, target)
 	}
 	if item.ResolvedPath != target {
 		t.Fatalf("item.ResolvedPath = %q, want %q", item.ResolvedPath, target)
@@ -157,17 +153,14 @@ func TestListMarksRepointedWorkspaceLinkBroken(t *testing.T) {
 		}
 	}
 
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), []byte("WORK_REPOS="+reposRoot+"\n"), 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
-	}
 	if _, err := workspace.CreateLink(actualTarget, filepath.Join(root, "payments-api")); err != nil {
 		t.Fatalf("CreateLink() error = %v", err)
 	}
 	if err := workspace.SaveConfig(root, workspace.Config{
-		Version: "1",
+		Version: "2",
 		Name:    "payments-debug",
 		Refs: []workspace.Ref{
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
+			{Name: "payments-api", Path: configuredTarget},
 		},
 	}); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)

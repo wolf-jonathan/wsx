@@ -18,15 +18,6 @@ import (
 func TestExecShowsGroupedOutputAndReturnsErrorForFailures(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	for _, name := range []string{"auth-service", "payments-api", "frontend"} {
@@ -34,7 +25,15 @@ func TestExecShowsGroupedOutputAndReturnsErrorForFailures(t *testing.T) {
 			t.Fatalf("MkdirAll(%s) error = %v", name, err)
 		}
 	}
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "payments-api", Path: filepath.Join(reposRoot, "payments-api")},
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+		},
+	})
 
 	stub := &stubExecRunner{
 		results: map[string]stubExecResult{
@@ -94,20 +93,19 @@ func TestExecShowsGroupedOutputAndReturnsErrorForFailures(t *testing.T) {
 func TestExecJSONIncludesCommandOutputAndResolvedPaths(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	target := filepath.Join(reposRoot, "auth-service")
 	if err := os.MkdirAll(target, 0o755); err != nil {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: target},
+		},
+	})
 
 	stub := &stubExecRunner{
 		results: map[string]stubExecResult{
@@ -147,8 +145,8 @@ func TestExecJSONIncludesCommandOutputAndResolvedPaths(t *testing.T) {
 	if item.Name != "auth-service" {
 		t.Fatalf("item.Name = %q, want auth-service", item.Name)
 	}
-	if item.Path != "${WORK_REPOS}/auth-service" {
-		t.Fatalf("item.Path = %q, want ${WORK_REPOS}/auth-service", item.Path)
+	if item.Path != target {
+		t.Fatalf("item.Path = %q, want %q", item.Path, target)
 	}
 	if item.ResolvedPath != target {
 		t.Fatalf("item.ResolvedPath = %q, want %q", item.ResolvedPath, target)
@@ -173,20 +171,19 @@ func TestExecJSONIncludesCommandOutputAndResolvedPaths(t *testing.T) {
 func TestExecTreatsNonZeroExitCodeAsFailureWithoutRunnerError(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	target := filepath.Join(reposRoot, "auth-service")
 	if err := os.MkdirAll(target, 0o755); err != nil {
 		t.Fatalf("MkdirAll(target) error = %v", err)
 	}
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: target},
+		},
+	})
 
 	stub := &stubExecRunner{
 		results: map[string]stubExecResult{
@@ -233,14 +230,6 @@ func TestExecTreatsNonZeroExitCodeAsFailureWithoutRunnerError(t *testing.T) {
 func TestExecParallelPreservesWorkspaceOrder(t *testing.T) {
 	root := t.TempDir()
 	chdirForExecTest(t, root)
-	writeExecWorkspace(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	for _, name := range []string{"auth-service", "payments-api"} {
@@ -248,7 +237,14 @@ func TestExecParallelPreservesWorkspaceOrder(t *testing.T) {
 			t.Fatalf("MkdirAll(%s) error = %v", name, err)
 		}
 	}
-	writeExecEnv(t, root, reposRoot)
+	writeExecWorkspace(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "payments-api", Path: filepath.Join(reposRoot, "payments-api")},
+		},
+	})
 
 	stub := newBlockingExecRunner()
 	stub.results[filepath.Join(reposRoot, "auth-service")] = stubExecResult{
@@ -382,15 +378,6 @@ func writeExecWorkspace(t *testing.T, root string, cfg workspace.Config) {
 
 	if err := workspace.SaveConfig(root, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
-	}
-}
-
-func writeExecEnv(t *testing.T, root, reposRoot string) {
-	t.Helper()
-
-	content := []byte("WORK_REPOS=" + reposRoot + "\n")
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), content, 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
 	}
 }
 

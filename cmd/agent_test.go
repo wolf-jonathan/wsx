@@ -14,14 +14,6 @@ import (
 func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
-	writeAgentWorkspaceConfig(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
@@ -30,7 +22,14 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", ".github", "copilot-instructions.md"), "# Copilot\nPrefer small changes.\n")
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", "docs", "AGENTS.md"), "# Docs Agents\nUse the docs policy.\n")
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "frontend", "package.json"), "{\n  \"dependencies\": {\"next\": \"1.0.0\"}\n}\n")
-	writeAgentEnvFile(t, root, reposRoot)
+	writeAgentWorkspaceConfig(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+		},
+	})
 
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
@@ -103,17 +102,16 @@ func TestAgentInitWritesWorkspaceInstructionFiles(t *testing.T) {
 func TestAgentInitOverwritesExistingWorkspaceInstructionFiles(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
-	writeAgentWorkspaceConfig(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writeAgentCmdFile(t, filepath.Join(reposRoot, "auth-service", "go.mod"), "module example.com/auth\n")
-	writeAgentEnvFile(t, root, reposRoot)
+	writeAgentWorkspaceConfig(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+		},
+	})
 	writeAgentCmdFile(t, filepath.Join(root, "CLAUDE.md"), "user-owned\n")
 	writeAgentCmdFile(t, filepath.Join(root, "AGENTS.md"), "user-owned-agents\n")
 
@@ -151,15 +149,6 @@ func writeAgentWorkspaceConfig(t *testing.T, root string, cfg workspace.Config) 
 
 	if err := workspace.SaveConfig(root, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
-	}
-}
-
-func writeAgentEnvFile(t *testing.T, root, reposRoot string) {
-	t.Helper()
-
-	content := []byte("WORK_REPOS=" + reposRoot + "\n")
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), content, 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
 	}
 }
 

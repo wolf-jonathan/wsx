@@ -15,14 +15,6 @@ import (
 func TestGrepFindsMatchesWithIncludeExcludeAndContext(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
-	writeGrepWorkspaceConfig(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "auth-service", Path: `${WORK_REPOS}/auth-service`},
-			{Name: "payments-api", Path: `${WORK_REPOS}/payments-api`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "auth-service", ".gitignore"), "ignored.txt\n")
@@ -30,7 +22,14 @@ func TestGrepFindsMatchesWithIncludeExcludeAndContext(t *testing.T) {
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "auth-service", "ignored.txt"), "handleAuth hidden\n")
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "payments-api", "src", "client.ts"), "const x = 1;\nawait handleAuth(request)\nreturn ok\n")
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "payments-api", "notes.txt"), "handleAuth in docs\n")
-	writeGrepEnvFile(t, root, reposRoot)
+	writeGrepWorkspaceConfig(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "auth-service", Path: filepath.Join(reposRoot, "auth-service")},
+			{Name: "payments-api", Path: filepath.Join(reposRoot, "payments-api")},
+		},
+	})
 
 	stdout := new(bytes.Buffer)
 	command := cmd.NewRootCommand()
@@ -66,17 +65,16 @@ func TestGrepFindsMatchesWithIncludeExcludeAndContext(t *testing.T) {
 func TestGrepJSONReturnsStructuredMatches(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
-	writeGrepWorkspaceConfig(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "frontend", "src", "app.tsx"), "before\nconst token = refreshToken()\nafter\n")
-	writeGrepEnvFile(t, root, reposRoot)
+	writeGrepWorkspaceConfig(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+		},
+	})
 
 	stdout := new(bytes.Buffer)
 	command := cmd.NewRootCommand()
@@ -127,17 +125,16 @@ func TestGrepJSONReturnsStructuredMatches(t *testing.T) {
 func TestGrepReturnsNonZeroWhenNoMatchesFound(t *testing.T) {
 	root := t.TempDir()
 	chdirForTest(t, root)
-	writeGrepWorkspaceConfig(t, root, workspace.Config{
-		Version: "1",
-		Name:    "payments-debug",
-		Refs: []workspace.Ref{
-			{Name: "frontend", Path: `${WORK_REPOS}/frontend`},
-		},
-	})
 
 	reposRoot := filepath.Join(t.TempDir(), "repos")
 	writeCmdGrepFile(t, filepath.Join(reposRoot, "frontend", "src", "app.tsx"), "export function App() {}\n")
-	writeGrepEnvFile(t, root, reposRoot)
+	writeGrepWorkspaceConfig(t, root, workspace.Config{
+		Version: "2",
+		Name:    "payments-debug",
+		Refs: []workspace.Ref{
+			{Name: "frontend", Path: filepath.Join(reposRoot, "frontend")},
+		},
+	})
 
 	stdout := new(bytes.Buffer)
 	command := cmd.NewRootCommand()
@@ -162,15 +159,6 @@ func writeGrepWorkspaceConfig(t *testing.T, root string, cfg workspace.Config) {
 
 	if err := workspace.SaveConfig(root, cfg); err != nil {
 		t.Fatalf("SaveConfig() error = %v", err)
-	}
-}
-
-func writeGrepEnvFile(t *testing.T, root, reposRoot string) {
-	t.Helper()
-
-	content := []byte("WORK_REPOS=" + reposRoot + "\n")
-	if err := os.WriteFile(filepath.Join(root, workspace.EnvFileName), content, 0o644); err != nil {
-		t.Fatalf("WriteFile(.wsx.env) error = %v", err)
 	}
 }
 
