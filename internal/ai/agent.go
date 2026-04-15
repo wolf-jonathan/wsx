@@ -57,6 +57,10 @@ func GenerateWorkspaceInstructions(workspaceName, purpose string, repos []Instru
 			return WorkspaceInstructions{}, err
 		}
 
+		for index := range references {
+			references[index].Path = filepath.ToSlash(filepath.Join(repo.Name, references[index].Path))
+		}
+
 		treeRepos = append(treeRepos, TreeRepo{
 			Name: repo.Name,
 			Root: absoluteRoot,
@@ -138,6 +142,7 @@ func RenderWorkspaceInstructions(instructions WorkspaceInstructions) string {
 			builder.WriteString(repo.Name)
 			builder.WriteString("`\n\n")
 			builder.WriteString("This section lists instruction file references only. Contents are not duplicated here.\n\n")
+			builder.WriteString("Paths are relative to the workspace root.\n\n")
 
 			if len(repo.References) == 0 {
 				builder.WriteString("No repo-specific instruction files were found for this repo.\n\n")

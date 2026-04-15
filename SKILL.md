@@ -309,6 +309,8 @@ Expectations:
   contents
 - Discovers linked-repo `CLAUDE.md` and `AGENTS.md` files in the repo root and
   immediate child directories, plus exact `.github/copilot-instructions.md`
+- Renders discovered instruction references as workspace-relative paths that
+  start with the linked repo directory name
 
 ### `wsx favorite add <path> --name <NAME>`
 

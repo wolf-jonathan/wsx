@@ -35,11 +35,11 @@ func TestGenerateWorkspaceInstructionsIncludesInstructionReferences(t *testing.T
 
 	authRepo := instructions.Repos[0]
 	wantReferences := []string{
-		".github/copilot-instructions.md",
-		"AGENTS.md",
-		"CLAUDE.md",
-		"docs/AGENTS.md",
-		"services/CLAUDE.md",
+		"auth-service/.github/copilot-instructions.md",
+		"auth-service/AGENTS.md",
+		"auth-service/CLAUDE.md",
+		"auth-service/docs/AGENTS.md",
+		"auth-service/services/CLAUDE.md",
 	}
 	if got := referencePaths(authRepo.References); !slicesEqual(got, wantReferences) {
 		t.Fatalf("auth repo references = %v, want %v", got, wantReferences)
@@ -60,11 +60,12 @@ func TestGenerateWorkspaceInstructionsIncludesInstructionReferences(t *testing.T
 		"## Repo Instruction References",
 		"### Repo: `auth-service`",
 		"This section lists instruction file references only. Contents are not duplicated here.",
-		"- `.github/copilot-instructions.md`",
-		"- `AGENTS.md`",
-		"- `CLAUDE.md`",
-		"- `docs/AGENTS.md`",
-		"- `services/CLAUDE.md`",
+		"Paths are relative to the workspace root.",
+		"- `auth-service/.github/copilot-instructions.md`",
+		"- `auth-service/AGENTS.md`",
+		"- `auth-service/CLAUDE.md`",
+		"- `auth-service/docs/AGENTS.md`",
+		"- `auth-service/services/CLAUDE.md`",
 		"### Repo: `frontend`",
 		"No repo-specific instruction files were found for this repo.",
 	} {
@@ -80,6 +81,10 @@ func TestGenerateWorkspaceInstructionsIncludesInstructionReferences(t *testing.T
 		"Keep handlers thin.",
 		"Prefer service contracts.",
 		"Prefer small changes.",
+		"- `.github/copilot-instructions.md`",
+		"- `AGENTS.md`",
+		"- `CLAUDE.md`",
+		"- `docs/AGENTS.md`",
 		"docs/nested/CLAUDE.md",
 		"#### Source:",
 	} {
