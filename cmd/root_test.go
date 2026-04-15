@@ -32,6 +32,7 @@ func TestRootHelpShowsSupportedCommands(t *testing.T) {
 		"grep",
 		"init",
 		"list",
+		"favorite",
 		"prompt",
 		"remove",
 		"skill-install",

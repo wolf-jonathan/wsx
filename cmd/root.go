@@ -26,6 +26,7 @@ func NewRootCommand() *cobra.Command {
 	root.AddCommand(newDoctorCommand())
 	root.AddCommand(newExecCommand())
 	root.AddCommand(newFetchCommand())
+	root.AddCommand(newFavoriteCommand())
 	root.AddCommand(newGrepCommand())
 	root.AddCommand(newInitCommand())
 	root.AddCommand(newListCommand())
