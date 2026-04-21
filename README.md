@@ -267,6 +267,13 @@ wsx skill-uninstall --scope global
 
 ---
 
+## Known Limitations
+
+GitHub Copilot CLI currently does not allow file references that point through
+symlinked workspace paths.
+
+---
+
 ## Command Reference
 
 ### Workspace commands
